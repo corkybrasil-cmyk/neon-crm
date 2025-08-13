@@ -1,0 +1,46 @@
+{
+  "stages": [
+    "novo lead",
+    "qualificado",
+    "proposta",
+    "venda",
+    "perdido"
+  ],
+  "leads": [
+    {
+      "id": "f2z1cq8",
+      "responsavel": "Marcel Tasso Guimarães",
+      "crianca": "Marcel Tasso Guimarães",
+      "idade": 9,
+      "periodo": "manhã",
+      "frequencia": "3",
+      "fonte": "marketing digital",
+      "telefone": "44991433360",
+      "bairro": "Zona 04",
+      "etapa": "novo lead",
+      "valorVenda": 800,
+      "observacoes": "",
+      "createdAt": "2025-08-13T19:03:32.286Z",
+      "updatedAt": "2025-08-13T19:03:32.287Z",
+      "stageChangedAt": "2025-08-13T19:03:32.287Z"
+    }
+  ],
+  "tasks": {
+    "leads": {
+      "stages": [
+        "para fazer",
+        "fazendo"
+      ],
+      "items": []
+    },
+    "escola": {
+      "stages": [
+        "para fazer",
+        "fazendo"
+      ],
+      "items": []
+    }
+  },
+  "entities": [],
+  "theme": {}
+}
