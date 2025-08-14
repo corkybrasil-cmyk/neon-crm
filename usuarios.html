@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Usuários — Neon CRM</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo" aria-label="Neon logo">
+        <!-- same logo as other pages -->
+        <svg width="42" height="36" viewBox="0 0 431 368" xmlns="http://www.w3.org/2000/svg"><g mask="url(#m)"><mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="431" height="368"><path d="M0.226562 0.716797H430.663V367.476H0.226562V0.716797Z" fill="#fff"/></mask><path fill-rule="evenodd" clip-rule="evenodd" d="M255.207 109.518H229.474C226.689 109.518 224.419 107.247 224.608 104.49C228.068 49.238 288.346 19.4766 323.081 16.7735C325.838 16.5573 328.081 18.8008 328.081 21.5851V55.4282C328.081 58.2394 325.757 60.456 322.973 60.6992C293.212 63.2942 273.858 91.65 269.398 105.247C268.533 107.869 270.641 110.139 273.425 110.139H301.7C303.781 110.139 305.457 111.815 305.457 113.897V116.411C305.457 118.492 303.781 120.195 301.7 120.195H273.425C270.641 120.195 268.371 122.466 268.587 125.223C271.155 159.931 300.132 176.798 323.054 178.988C325.811 179.231 328.081 181.475 328.081 184.259V216.886C328.081 219.67 325.757 221.913 322.973 221.805C249.449 218.751 226.419 159.309 224.581 125.169C224.419 122.384 226.662 120.195 229.447 120.195H255.207C257.991 120.195 260.234 117.924 260.234 115.167V114.545C260.234 111.761 257.991 109.518 255.207 109.518Z" fill="var(--logo-neon)"/></g></svg>
+      </div>
+      <div class="app-title"><span class="neon">Neon</span> CRM</div>
+    </div>
+    <div class="right">
+      <span class="tiny">Dados salvos localmente</span>
+      <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="collapsed">
+      <button class="tab" onclick="navigateTo('dashboard')"><span class="icon">📊</span><span class="label">Dashboard</span></button>
+      <button class="tab" onclick="navigateTo('novo-lead')"><span class="icon">➕</span><span class="label">Novo Lead</span></button>
+      <button class="tab" onclick="navigateTo('funil-vendas')"><span class="icon">🧩</span><span class="label">Funil de Vendas</span></button>
+      <button class="tab" onclick="navigateTo('tarefas')"><span class="icon">🗂️</span><span class="label">Tarefas</span></button>
+      <button class="tab" onclick="navigateTo('pessoas-empresas')"><span class="icon">👥</span><span class="label">Pessoas & Empresas</span></button>
+      <button class="tab" onclick="navigateTo('dev')"><span class="icon">🛠️</span><span class="label">Dev</span></button>
+      <button class="tab active" onclick="navigateTo('usuarios')"><span class="icon">👤</span><span class="label">Usuários</span></button>
+    </nav>
+
+    <main>
+      <div class="card">
+        <h3>Gerenciamento de Usuários</h3>
+        <p>Somente usuários com permissão <strong>admin</strong> podem acessar esta página.</p>
+        <div class="row" style="margin-bottom:12px;">
+          <button id="addUserBtn" class="primary">Adicionar Usuário</button>
+        </div>
+        <table class="list" style="margin-top:8px;">
+          <thead><tr><th>Usuário</th><th>Senha</th><th>Permissão</th><th>Ações</th></tr></thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/utils.js"></script>
+  <script src="assets/usuarios.js"></script>
+</body>
+</html>

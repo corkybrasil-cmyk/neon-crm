@@ -3,11 +3,13 @@ const $$ = (selector) => document.querySelector(selector);
 const $$$ = (selector) => document.querySelectorAll(selector);
 
 // Sistema de armazenamento
+// Data is loaded exclusively from GitHub before any localStorage data is used.
 const Store = {
-    data: JSON.parse(localStorage.getItem('neon-crm-data') || '{}'),
+    data: {}, // will be populated after GitHub fetch
     save() {
+        // Persist to localStorage after data is fully loaded
         localStorage.setItem('neon-crm-data', JSON.stringify(this.data));
-        // Auto-sync com GitHub se configurado
+        // Auto-sync with GitHub if configured
         if (GitHubSync.cfg.auto && GitHubSync.cfg.token && GitHubSync.cfg.repo) {
             console.log('Auto-sync ativado, salvando no GitHub...');
             GitHubSync.debouncedSaveNow();
@@ -286,18 +288,27 @@ if (typeof document !== 'undefined') {
                 if (content) {
                     Store.data = JSON.parse(content);
                     console.log('Dados carregados do GitHub');
-                    // If this is the first load after sync, force a reload to ensure all scripts see the data
-                    if (!localStorage.getItem('github-sync-reloaded')) {
-                        localStorage.setItem('github-sync-reloaded', 'true');
-                        console.log('Forçando recarregamento da página para aplicar dados sincronizados');
-                        window.location.reload();
-                    }
+                    // Persist to localStorage after successful load
+                    Store.save();
+                    // Mark page ready
+                    window.CRM_READY = true;
+                    console.log('Página pronta');
                 } else {
-                    console.log('Nenhum dado encontrado no GitHub, usando localStorage');
+                    console.error('ERRO 69420: arquivo neon-crm-data.json não encontrado no repositório');
+                    // Fallback to localStorage if any (should be empty)
+                    const local = localStorage.getItem('neon-crm-data');
+                    if (local) {
+                        Store.data = JSON.parse(local);
+                        console.log('Dados carregados do localStorage como fallback');
+                    } else {
+                        console.warn('Nenhum dado local disponível');
+                    }
                 }
             } catch (e) {
                 console.error('Erro ao carregar dados do GitHub:', e);
-                console.log('Continuando com dados locais');
+                // Continue with empty data
+                Store.data = {};
+                console.log('Continuando com dados vazios');
             }
         })();
         
@@ -315,4 +326,10 @@ if (typeof document !== 'undefined') {
             });
         }
     });
+}
+
+// Initialize users array if not present
+if (!Store.data.users) {
+    Store.data.users = [];
+    console.log('Inicializando array de usuários');
 }
