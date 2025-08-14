@@ -192,16 +192,15 @@ const GitHubSync = {
         console.log('Arquivo salvo com sucesso, novo SHA:', this.cfg.lastSha);
     },
     
-    async saveNow() {
+    async saveNow(retry409 = false) {
         if (!this.cfg.repo || !this.cfg.token) {
             console.log('GitHub Sync não configurado');
             return;
         }
-        
         try {
             console.log('Iniciando sincronização com GitHub...');
             const str = JSON.stringify(Store.data, null, 2);
-            // Always fetch the latest SHA before saving to avoid 409 conflicts
+            // Sempre buscar o SHA mais recente antes de salvar
             try {
                 console.log('Obtendo SHA mais recente do arquivo...');
                 const { sha } = await this.fetchFile();
@@ -217,10 +216,14 @@ const GitHubSync = {
             console.log('Dados sincronizados com GitHub com sucesso');
             toast('Dados sincronizados com GitHub', 'success');
         } catch (err) {
+            // Se for erro 409, buscar SHA novamente e tentar salvar mais uma vez
+            if (!retry409 && err.message && err.message.includes('409')) {
+                console.warn('Erro 409 detectado, tentando novamente com SHA atualizado...');
+                await this.saveNow(true);
+                return;
+            }
             console.error('Erro ao sincronizar com GitHub:', err);
             toast('Erro ao sincronizar com GitHub: ' + err.message, 'error');
-            
-            // Se o erro for de autenticação, marcar para reconfiguração
             if (err.message.includes('401') || err.message.includes('403')) {
                 console.log('Token pode ter expirado, marcando para reconfiguração');
                 this.cfg.token = null;
