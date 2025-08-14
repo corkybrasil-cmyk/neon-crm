@@ -39,7 +39,60 @@
     </nav>
 
     <main>
-      <!-- Página em branco -->
+      <div class="card">
+        <h3>🔧 Diagnóstico do GitHub Sync</h3>
+        <p>Esta página ajuda a diagnosticar e corrigir problemas de sincronização com o GitHub.</p>
+        
+        <div class="row">
+          <button id="testConnection" class="primary">Testar Conexão</button>
+          <button id="forceSync" class="primary">Forçar Sincronização</button>
+          <button id="checkConfig" class="ghost">Verificar Configuração</button>
+        </div>
+        
+        <div id="diagnosticResults" style="margin-top: 16px;"></div>
+      </div>
+
+      <div class="card" style="margin-top: 16px;">
+        <h3>📋 Guia de Solução de Problemas</h3>
+        
+        <h4>🔍 Problema: Dados não sincronizam com o GitHub</h4>
+        
+        <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; margin: 8px 0;">
+          <h5>1. Verificar Token do GitHub</h5>
+          <p>O token pode ter expirado. Para criar um novo:</p>
+          <ol style="margin-left: 20px;">
+            <li>Acesse <a href="https://github.com/settings/tokens" target="_blank" style="color: var(--accent-neon);">GitHub Settings > Tokens</a></li>
+            <li>Clique em "Generate new token (classic)"</li>
+            <li>Selecione as permissões: <strong>repo</strong> (acesso completo ao repositório)</li>
+            <li>Copie o token gerado (começa com <code>ghp_</code>)</li>
+            <li>Cole o token no campo abaixo e clique em "Atualizar Token"</li>
+          </ol>
+        </div>
+
+        <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; margin: 8px 0;">
+          <h5>2. Atualizar Token</h5>
+          <div class="row">
+            <div style="flex: 1;">
+              <label>Novo Token do GitHub</label>
+              <input id="newToken" type="password" placeholder="ghp_..." style="width: 100%;"/>
+            </div>
+            <div style="align-self: end;">
+              <button id="updateToken" class="primary">Atualizar Token</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; margin: 8px 0;">
+          <h5>3. Verificar Logs</h5>
+          <p>Abra o Console do navegador (F12) para ver logs detalhados da sincronização.</p>
+          <button id="openConsole" class="ghost" onclick="console.log('GitHub Sync Status:', GitHubSync.cfg); console.log('Store Data:', Store.data);">Mostrar Status no Console</button>
+        </div>
+
+        <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; margin: 8px 0;">
+          <h5>4. Forçar Sincronização Manual</h5>
+          <p>Se o auto-sync não funcionar, use o botão "Forçar Sincronização" acima.</p>
+        </div>
+      </div>
     </main>
   </div>
 

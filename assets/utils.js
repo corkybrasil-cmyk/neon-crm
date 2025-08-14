@@ -9,7 +9,10 @@ const Store = {
         localStorage.setItem('neon-crm-data', JSON.stringify(this.data));
         // Auto-sync com GitHub se configurado
         if (GitHubSync.cfg.auto && GitHubSync.cfg.token && GitHubSync.cfg.repo) {
+            console.log('Auto-sync ativado, salvando no GitHub...');
             GitHubSync.debouncedSaveNow();
+        } else {
+            console.log('Auto-sync desativado ou não configurado');
         }
     }
 };
@@ -72,11 +75,19 @@ const GitHubSync = {
     
     async fetchFile() {
         const url = `https://api.github.com/repos/${this.cfg.repo}/contents/neon-crm-data.json?ref=${encodeURIComponent(this.cfg.branch || 'main')}`;
+        console.log('Buscando arquivo:', url);
         const res = await fetch(url, { headers: this.headers() });
-        if (res.status === 404) return { content: null, sha: null };
-        if (!res.ok) throw new Error('Falha ao buscar arquivo: ' + res.status);
+        if (res.status === 404) {
+            console.log('Arquivo não encontrado, será criado');
+            return { content: null, sha: null };
+        }
+        if (!res.ok) {
+            console.error('Erro ao buscar arquivo:', res.status, res.statusText);
+            throw new Error('Falha ao buscar arquivo: ' + res.status);
+        }
         const data = await res.json();
         const content = atob((data.content || '').replace(/\n/g, ''));
+        console.log('Arquivo encontrado, SHA:', data.sha);
         return { content, sha: data.sha };
     },
     
@@ -88,36 +99,63 @@ const GitHubSync = {
             content: b64, 
             branch: this.cfg.branch || 'main' 
         };
-        if (this.cfg.lastSha) body.sha = this.cfg.lastSha;
+        if (this.cfg.lastSha) {
+            body.sha = this.cfg.lastSha;
+            console.log('Usando SHA existente:', this.cfg.lastSha);
+        } else {
+            console.log('Primeira vez salvando, sem SHA');
+        }
         
+        console.log('Salvando arquivo no GitHub...');
         const res = await fetch(url, { 
             method: 'PUT', 
             headers: { ...this.headers(), 'Content-Type': 'application/json' }, 
             body: JSON.stringify(body) 
         });
         
-        if (!res.ok) throw new Error('Falha ao salvar no GitHub: ' + res.status);
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('Erro ao salvar no GitHub:', res.status, errorText);
+            throw new Error('Falha ao salvar no GitHub: ' + res.status + ' - ' + errorText);
+        }
         const data = await res.json();
         this.cfg.lastSha = data.content?.sha || this.cfg.lastSha;
         this.save();
+        console.log('Arquivo salvo com sucesso, novo SHA:', this.cfg.lastSha);
     },
     
     async saveNow() {
-        if (!this.cfg.repo || !this.cfg.token) return;
+        if (!this.cfg.repo || !this.cfg.token) {
+            console.log('GitHub Sync não configurado');
+            return;
+        }
         
         try {
+            console.log('Iniciando sincronização com GitHub...');
             const str = JSON.stringify(Store.data, null, 2);
             if (!this.cfg.lastSha) {
                 try {
+                    console.log('Buscando SHA do arquivo existente...');
                     const { sha } = await this.fetchFile();
                     this.cfg.lastSha = sha || '';
                     this.save();
-                } catch (_) {}
+                } catch (error) {
+                    console.log('Arquivo não existe ainda, será criado');
+                }
             }
             await this.saveFile(str);
-            console.log('Dados sincronizados com GitHub');
+            console.log('Dados sincronizados com GitHub com sucesso');
+            toast('Dados sincronizados com GitHub', 'success');
         } catch (err) {
             console.error('Erro ao sincronizar com GitHub:', err);
+            toast('Erro ao sincronizar com GitHub: ' + err.message, 'error');
+            
+            // Se o erro for de autenticação, marcar para reconfiguração
+            if (err.message.includes('401') || err.message.includes('403')) {
+                console.log('Token pode ter expirado, marcando para reconfiguração');
+                this.cfg.token = null;
+                this.save();
+            }
         }
     },
     
