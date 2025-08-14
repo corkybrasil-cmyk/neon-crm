@@ -1,110 +1,43 @@
-// Sistema de autenticação
-function checkAuth() {
-    const isLoggedIn = localStorage.getItem('neon-crm-logged-in');
-    if (isLoggedIn !== 'true') {
-        window.location.href = 'index.html';
-    }
+// Inicializar dados padrão se não existirem
+if (!Store.data.stages) {
+  Store.data.stages = ["novo lead","qualificado","proposta","venda","perdido"];
 }
-
-// Navegação entre páginas
-function navigateTo(page) {
-    window.location.href = page + '.html';
+if (!Store.data.leads) {
+  Store.data.leads = [];
 }
-
-// Logout
-function logout() {
-    localStorage.removeItem('neon-crm-logged-in');
-    localStorage.removeItem('neon-crm-username');
-    window.location.href = 'index.html';
+if (!Store.data.tasks) {
+  Store.data.tasks = {
+    leads: { stages:["para fazer","fazendo"], items:[] },
+    escola:{ stages:["para fazer","fazendo"], items:[] }
+  };
 }
-
-// Utilitários
-const $$ = (selector) => document.querySelector(selector);
-const $$$ = (selector) => document.querySelectorAll(selector);
-
-// Sistema de armazenamento
-const Store = {
-    data: JSON.parse(localStorage.getItem('neon-crm-data') || '{}'),
-    save() {
-        localStorage.setItem('neon-crm-data', JSON.stringify(this.data));
-    }
-};
-
-// Sistema de toast
-function toast(msg, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = msg;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 100);
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => document.body.removeChild(toast), 300);
-    }, 3000);
+if (!Store.data.entities) {
+  Store.data.entities = [];
 }
-
-// Configurações do GitHub Sync
-const GitHubSync = {
-    cfg: JSON.parse(localStorage.getItem('neon-crm-github-sync') || '{}'),
-    save() {
-        localStorage.setItem('neon-crm-github-sync', JSON.stringify(this.cfg));
-    }
-};
+if (!Store.data.theme) {
+  Store.data.theme = {};
+}
 
 // Sistema de temas
 const ThemeSystem = {
-    themes: {
-        'default': {
-            '--primary-color': '#007bff',
-            '--secondary-color': '#6c757d',
-            '--success-color': '#28a745',
-            '--danger-color': '#dc3545',
-            '--warning-color': '#ffc107',
-            '--info-color': '#17a2b8',
-            '--light-color': '#f8f9fa',
-            '--dark-color': '#343a40',
-            '--body-bg': '#ffffff',
-            '--text-color': '#212529'
-        },
-        'dark': {
-            '--primary-color': '#007bff',
-            '--secondary-color': '#6c757d',
-            '--success-color': '#28a745',
-            '--danger-color': '#dc3545',
-            '--warning-color': '#ffc107',
-            '--info-color': '#17a2b8',
-            '--light-color': '#343a40',
-            '--dark-color': '#f8f9fa',
-            '--body-bg': '#212529',
-            '--text-color': '#ffffff'
-        },
-        'blue': {
-            '--primary-color': '#0056b3',
-            '--secondary-color': '#6c757d',
-            '--success-color': '#28a745',
-            '--danger-color': '#dc3545',
-            '--warning-color': '#ffc107',
-            '--info-color': '#17a2b8',
-            '--light-color': '#f8f9fa',
-            '--dark-color': '#343a40',
-            '--body-bg': '#f0f8ff',
-            '--text-color': '#212529'
-        }
-    },
-    
     applyTheme(themeName) {
-        const theme = this.themes[themeName];
-        if (!theme) return;
-        
-        Object.entries(theme).forEach(([property, value]) => {
-            document.documentElement.style.setProperty(property, value);
-        });
+        if (themeName === 'default') {
+            document.documentElement.style.setProperty('--accent-neon', '#c7f603');
+            document.documentElement.style.setProperty('--bg', '#0b1020');
+            document.documentElement.style.setProperty('--bg2', '#0e1430');
+        } else if (themeName === 'dark') {
+            document.documentElement.style.setProperty('--accent-neon', '#007bff');
+            document.documentElement.style.setProperty('--bg', '#212529');
+            document.documentElement.style.setProperty('--bg2', '#343a40');
+        } else if (themeName === 'blue') {
+            document.documentElement.style.setProperty('--accent-neon', '#0056b3');
+            document.documentElement.style.setProperty('--bg', '#f0f8ff');
+            document.documentElement.style.setProperty('--bg2', '#e6f3ff');
+        }
         
         localStorage.setItem('neon-crm-theme', themeName);
+        Store.data.theme = { name: themeName };
+        Store.save();
         toast(`Tema ${themeName} aplicado!`);
     },
     
@@ -122,55 +55,7 @@ const ThemeSystem = {
     }
 };
 
-// Sistema de menu
-const MenuSystem = {
-    init() {
-        // Configurar opções de menu
-        $$$('.menu-option').forEach(option => {
-            option.addEventListener('change', () => {
-                const setting = option.dataset.setting;
-                const value = option.checked;
-                Store.data.menuSettings = Store.data.menuSettings || {};
-                Store.data.menuSettings[setting] = value;
-                Store.save();
-                toast('Configuração salva!');
-            });
-        });
-        
-        // Carregar configurações salvas
-        if (Store.data.menuSettings) {
-            Object.entries(Store.data.menuSettings).forEach(([setting, value]) => {
-                const option = $$(`[data-setting="${setting}"]`);
-                if (option) option.checked = value;
-            });
-        }
-    }
-};
 
-// Sistema de customizações avançadas
-const AdvancedSystem = {
-    init() {
-        // Configurar campos de customização
-        $$$('.custom-field').forEach(field => {
-            field.addEventListener('change', () => {
-                const setting = field.dataset.setting;
-                const value = field.value;
-                Store.data.advancedSettings = Store.data.advancedSettings || {};
-                Store.data.advancedSettings[setting] = value;
-                Store.save();
-                toast('Configuração salva!');
-            });
-        });
-        
-        // Carregar configurações salvas
-        if (Store.data.advancedSettings) {
-            Object.entries(Store.data.advancedSettings).forEach(([setting, value]) => {
-                const field = $$(`[data-setting="${setting}"]`);
-                if (field) field.value = value;
-            });
-        }
-    }
-};
 
 // Sistema de backup
 const BackupSystem = {
@@ -196,9 +81,9 @@ const BackupSystem = {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            toast('Backup criado com sucesso!', 'success');
+            toast('Backup criado com sucesso!');
         } catch (error) {
-            toast('Erro ao criar backup: ' + error.message, 'error');
+            toast('Erro ao criar backup: ' + error.message);
         }
     },
     
@@ -217,12 +102,12 @@ const BackupSystem = {
                 GitHubSync.save();
             }
             
-            toast('Backup restaurado com sucesso!', 'success');
+            toast('Backup restaurado com sucesso!');
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
         } catch (error) {
-            toast('Erro ao restaurar backup: ' + error.message, 'error');
+            toast('Erro ao restaurar backup: ' + error.message);
         }
     },
     
@@ -249,25 +134,25 @@ const GitHubSyncSystem = {
         const repo = $$('#githubRepo').value;
         
         if (!token || !repo) {
-            toast('Preencha token e repositório!', 'error');
+            toast('Preencha token e repositório!');
             return;
         }
         
         try {
             const response = await fetch(`https://api.github.com/repos/${repo}`, {
                 headers: {
-                    'Authorization': `token ${token}`,
+                    'Authorization': `Bearer ${token}`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
             
             if (response.ok) {
-                toast('Conexão com GitHub estabelecida!', 'success');
+                toast('Conexão com GitHub estabelecida!');
             } else {
-                toast('Erro na conexão: ' + response.statusText, 'error');
+                toast('Erro na conexão: ' + response.statusText);
             }
         } catch (error) {
-            toast('Erro ao testar conexão: ' + error.message, 'error');
+            toast('Erro ao testar conexão: ' + error.message);
         }
     },
     
@@ -280,28 +165,20 @@ const GitHubSyncSystem = {
             syncInterval: $$('#syncInterval').value || 300
         };
         GitHubSync.save();
-        toast('Configurações salvas!', 'success');
+        toast('Configurações salvas!');
     },
     
     async syncToGitHub() {
         if (!GitHubSync.cfg.token || !GitHubSync.cfg.repo) {
-            toast('Configure o GitHub Sync primeiro!', 'error');
+            toast('Configure o GitHub Sync primeiro!');
             return;
         }
         
         try {
-            const data = JSON.stringify(Store.data, null, 2);
-            const filename = `neon-crm-data-${new Date().toISOString().split('T')[0]}.json`;
-            
-            // Aqui você implementaria a lógica real de push para o GitHub
-            // Por enquanto, apenas simulamos
-            toast('Sincronizando com GitHub...', 'info');
-            
-            setTimeout(() => {
-                toast('Sincronização concluída!', 'success');
-            }, 2000);
+            await GitHubSync.saveNow();
+            toast('Sincronização concluída!');
         } catch (error) {
-            toast('Erro na sincronização: ' + error.message, 'error');
+            toast('Erro na sincronização: ' + error.message);
         }
     },
     
@@ -334,8 +211,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inicializar sistemas
     ThemeSystem.init();
-    MenuSystem.init();
-    AdvancedSystem.init();
     BackupSystem.init();
     GitHubSyncSystem.init();
     
