@@ -18,6 +18,8 @@ const Store = {
         }
     }
 };
+// Expose Store globally so other scripts (e.g., dashboard.js) can use the same instance
+window.Store = Store;
 
 // Sistema de toast
 function toast(msg, type = 'info') {
@@ -297,6 +299,16 @@ async function ready() {
             console.warn('Nenhum dado local disponível');
             Store.data = {};
         }
+    }
+
+    // Ensure required arrays exist
+    if (!Array.isArray(Store.data.leads)) {
+        Store.data.leads = [];
+        console.log('Inicializando array de leads');
+    }
+    if (!Array.isArray(Store.data.users)) {
+        Store.data.users = [];
+        console.log('Inicializando array de usuários');
     }
 
     // 3️⃣ Persiste em localStorage e dispara auto‑sync
