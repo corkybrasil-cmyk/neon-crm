@@ -276,51 +276,55 @@ function closeModal() {
     $$('#modalBody').innerHTML = '';
 }
 
+// Função ready – garante que o CRM só será exibido depois que os dados do GitHub estiverem disponíveis
+async function ready() {
+    // 1️⃣ Configura auto‑sync
+    GitHubSync.setupAutoSync();
+
+    // 2️⃣ Busca o arquivo no GitHub
+    const { content } = await GitHubSync.fetchFile();
+
+    if (content) {
+        Store.data = JSON.parse(content);
+        console.log('Dados carregados do GitHub (ready)');
+    } else {
+        console.error('ERRO 69420: neon‑crm‑data.json não encontrado no repositório');
+        const local = localStorage.getItem('neon-crm-data');
+        if (local) {
+            Store.data = JSON.parse(local);
+            console.log('Dados carregados do localStorage como fallback');
+        } else {
+            console.warn('Nenhum dado local disponível');
+            Store.data = {};
+        }
+    }
+
+    // 3️⃣ Persiste em localStorage e dispara auto‑sync
+    Store.save();
+
+    // 4️⃣ Marca como pronto
+    window.CRM_READY = true;
+    console.log('Página pronta (ready)');
+
+    // 5️⃣ Dispara evento customizado
+    window.dispatchEvent(new Event('crmReady'));
+}
+// Expor a função globalmente (para uso sem import)
+window.ready = ready;
+
 // Inicializar modal e GitHub Sync
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', function() {
-        // Configurar GitHub Auto-Sync
-        GitHubSync.setupAutoSync();
-        // Carregar dados do GitHub ao iniciar, se possível
-        (async () => {
-            try {
-                const { content } = await GitHubSync.fetchFile();
-                if (content) {
-                    Store.data = JSON.parse(content);
-                    console.log('Dados carregados do GitHub');
-                    // Persist to localStorage after successful load
-                    Store.save();
-                    // Mark page ready
-                    window.CRM_READY = true;
-                    console.log('Página pronta');
-                } else {
-                    console.error('ERRO 69420: arquivo neon-crm-data.json não encontrado no repositório');
-                    // Fallback to localStorage if any (should be empty)
-                    const local = localStorage.getItem('neon-crm-data');
-                    if (local) {
-                        Store.data = JSON.parse(local);
-                        console.log('Dados carregados do localStorage como fallback');
-                    } else {
-                        console.warn('Nenhum dado local disponível');
-                    }
-                }
-            } catch (e) {
-                console.error('Erro ao carregar dados do GitHub:', e);
-                // Continue with empty data
-                Store.data = {};
-                console.log('Continuando com dados vazios');
-            }
-        })();
-        
+        // Inicia o CRM (carrega dados e marca ready)
+        ready();
+        // Configurar modal (mantém código existente)
         if ($$('#modalClose')) {
             $$('#modalClose').onclick = closeModal;
         }
-        
         if ($$('#modal')) {
             window.addEventListener('keydown', e => {
                 if (e.key === 'Escape') closeModal();
             });
-            
             window.addEventListener('click', e => {
                 if (e.target === $$('#modal')) closeModal();
             });
