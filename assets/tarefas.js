@@ -1,23 +1,3 @@
-// Inicializar dados padrão se não existirem
-if (!Store.data.stages) {
-  Store.data.stages = ["novo lead","qualificado","proposta","venda","perdido"];
-}
-if (!Store.data.leads) {
-  Store.data.leads = [];
-}
-if (!Store.data.tasks) {
-  Store.data.tasks = {
-    leads: { stages:["para fazer","fazendo"], items:[] },
-    escola:{ stages:["para fazer","fazendo"], items:[] }
-  };
-}
-if (!Store.data.entities) {
-  Store.data.entities = [];
-}
-if (!Store.data.theme) {
-  Store.data.theme = {};
-}
-
 // Variável global para o tipo de tarefa selecionado
 let currentTaskType = 'leads';
 
@@ -268,24 +248,50 @@ function openTaskModal(type, t) {
   };
 }
 
-// Inicialização
-document.addEventListener('DOMContentLoaded', function() {
-  // Verificar autenticação
-  checkAuth();
-  
-  // Event listeners
-  const btnBackToSelection = $$('#btnBackToSelection');
-  if (btnBackToSelection) {
-    btnBackToSelection.addEventListener('click', backToSelection);
-  }
-  
-  const btnTaskNew = $$('#btnTaskNew');
-  if (btnTaskNew) {
-    btnTaskNew.addEventListener('click', () => newTask(currentTaskType));
-  }
-  
-  const btnTaskStages = $$('#btnTaskStages');
-  if (btnTaskStages) {
-    btnTaskStages.addEventListener('click', () => customizeTaskStages(currentTaskType));
-  }
-});
+// Função de inicialização da página Tarefas – aguarda o CRM estar pronto
+function initTarefas() {
+    // Garantir que os dados padrão existam (após ready)
+    if (!Store.data.stages) {
+        Store.data.stages = ["novo lead","qualificado","proposta","venda","perdido"];
+    }
+    if (!Store.data.leads) {
+        Store.data.leads = [];
+    }
+    if (!Store.data.tasks) {
+        Store.data.tasks = {
+            leads: { stages: ["para fazer","fazendo"], items: [] },
+            escola: { stages: ["para fazer","fazendo"], items: [] }
+        };
+    }
+    if (!Store.data.entities) {
+        Store.data.entities = [];
+    }
+    if (!Store.data.theme) {
+        Store.data.theme = {};
+    }
+
+    // Event listeners (mesmo código do DOMContentLoaded original)
+    const btnBackToSelection = $$('#btnBackToSelection');
+    if (btnBackToSelection) {
+        btnBackToSelection.addEventListener('click', backToSelection);
+    }
+    const btnTaskNew = $$('#btnTaskNew');
+    if (btnTaskNew) {
+        btnTaskNew.addEventListener('click', () => newTask(currentTaskType));
+    }
+    const btnTaskStages = $$('#btnTaskStages');
+    if (btnTaskStages) {
+        btnTaskStages.addEventListener('click', () => customizeTaskStages(currentTaskType));
+    }
+}
+
+if (window.CRM_READY) {
+    console.log('CRM já pronto – inicializando Tarefas');
+    initTarefas();
+} else {
+    console.log('Aguardando CRM_READY para Tarefas');
+    window.addEventListener('crmReady', () => {
+        console.log('Evento crmReady recebido – iniciando Tarefas');
+        initTarefas();
+    });
+}

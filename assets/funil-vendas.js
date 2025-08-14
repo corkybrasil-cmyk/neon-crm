@@ -1,4 +1,5 @@
 // Inicializar dados padrão se não existirem
+// Inicializar dados padrão se não existirem
 if (!Store.data.stages) {
   Store.data.stages = ["novo lead","qualificado","proposta","venda","perdido"];
 }
@@ -268,88 +269,98 @@ function openLeadEditModal(l) {
   };
 }
 
-// Inicialização
-document.addEventListener('DOMContentLoaded', function() {
-  // Verificar autenticação
-  checkAuth();
-  
-  // Renderizar leads
-  renderLeads();
-  
-  // Event listeners
-  const leadView = $$('#leadView');
-  if (leadView) {
-    leadView.addEventListener('change', function() {
-      const isKanban = this.value === 'kanban';
-      $$('#kanbanWrap').classList.toggle('hidden', !isKanban);
-      $$('#listWrap').classList.toggle('hidden', isKanban);
-      renderLeads();
-    });
-  }
-  
-  // Botões de edição de etapas
-  $$('#editStages').addEventListener('click', () => {
-    document.body.dataset.editStages = document.body.dataset.editStages ? '' : '1';
-    const on = !!document.body.dataset.editStages;
-    $$('#addStage').classList.toggle('hidden', !on);
-    $$('#saveStages').classList.toggle('hidden', !on);
-    $$('#editStages').textContent = on ? 'Cancel. edição' : 'Editar etapas';
-    renderLeads();
-  });
-  
-  $$('#addStage').addEventListener('click', () => {
-    const name = prompt('Nome da nova etapa:');
-    if (!name) return;
-    Store.data.stages.push(name);
-    Store.save();
-    renderLeads();
-  });
-  
-  $$('#saveStages').addEventListener('click', () => {
-    document.body.dataset.editStages = '';
-    $$('#addStage').classList.add('hidden');
-    $$('#saveStages').classList.add('hidden');
-    $$('#editStages').textContent = 'Editar etapas';
-    Store.save();
-    renderLeads();
-    toast('Etapas salvas');
-  });
-  
-  // Event listeners para filtros e ordenação
-  const leadSearch = $$('#leadSearch');
-  if (leadSearch) {
-    leadSearch.addEventListener('input', renderLeads);
-  }
-  
-  const leadSort = $$('#leadSort');
-  if (leadSort) {
-    leadSort.addEventListener('change', renderLeads);
-  }
-  
-  const leadFilter = $$('#leadFilter');
-  if (leadFilter) {
-    leadFilter.addEventListener('change', renderLeads);
-  }
-  
-  const kanbanSort = $$('#kanbanSort');
-  if (kanbanSort) {
-    kanbanSort.addEventListener('change', renderLeads);
-  }
-  
-  // Inicializar opções do filtro por etapa
-  function updateStageFilterOptions() {
-    if (leadFilter) {
-      const currentValue = leadFilter.value;
-      leadFilter.innerHTML = '<option value="">Todas as etapas</option>';
-      Store.data.stages.forEach(stage => {
-        const option = document.createElement('option');
-        option.value = stage;
-        option.textContent = stage;
-        if (stage === currentValue) option.selected = true;
-        leadFilter.appendChild(option);
-      });
+// Função de inicialização da página Funil de Vendas – aguarda o CRM estar pronto
+function initFunilVendas() {
+    // Garantir que os dados padrão existam (após o ready já carregou Store)
+    if (!Store.data.stages) {
+        Store.data.stages = ["novo lead","qualificado","proposta","venda","perdido"];
     }
-  }
-  
-  updateStageFilterOptions();
-});
+    if (!Store.data.leads) {
+        Store.data.leads = [];
+    }
+    if (!Store.data.tasks) {
+        Store.data.tasks = {
+            leads: { stages: ["para fazer","fazendo"], items: [] },
+            escola: { stages: ["para fazer","fazendo"], items: [] }
+        };
+    }
+    if (!Store.data.entities) {
+        Store.data.entities = [];
+    }
+    if (!Store.data.theme) {
+        Store.data.theme = {};
+    }
+
+    // Renderizar leads
+    renderLeads();
+
+    // Event listeners (mesmo código do DOMContentLoaded original)
+    const leadView = $$('#leadView');
+    if (leadView) {
+        leadView.addEventListener('change', function() {
+            const isKanban = this.value === 'kanban';
+            $$('#kanbanWrap').classList.toggle('hidden', !isKanban);
+            $$('#listWrap').classList.toggle('hidden', isKanban);
+            renderLeads();
+        });
+    }
+    $$('#editStages').addEventListener('click', () => {
+        document.body.dataset.editStages = document.body.dataset.editStages ? '' : '1';
+        const on = !!document.body.dataset.editStages;
+        $$('#addStage').classList.toggle('hidden', !on);
+        $$('#saveStages').classList.toggle('hidden', !on);
+        $$('#editStages').textContent = on ? 'Cancel. edição' : 'Editar etapas';
+        renderLeads();
+    });
+    $$('#addStage').addEventListener('click', () => {
+        const name = prompt('Nome da nova etapa:');
+        if (!name) return;
+        Store.data.stages.push(name);
+        Store.save();
+        renderLeads();
+    });
+    $$('#saveStages').addEventListener('click', () => {
+        document.body.dataset.editStages = '';
+        $$('#addStage').classList.add('hidden');
+        $$('#saveStages').classList.add('hidden');
+        $$('#editStages').textContent = 'Editar etapas';
+        Store.save();
+        renderLeads();
+        toast('Etapas salvas');
+    });
+    // Filtros e ordenação
+    const leadSearch = $$('#leadSearch');
+    if (leadSearch) leadSearch.addEventListener('input', renderLeads);
+    const leadSort = $$('#leadSort');
+    if (leadSort) leadSort.addEventListener('change', renderLeads);
+    const leadFilter = $$('#leadFilter');
+    if (leadFilter) leadFilter.addEventListener('change', renderLeads);
+    const kanbanSort = $$('#kanbanSort');
+    if (kanbanSort) kanbanSort.addEventListener('change', renderLeads);
+    // Atualizar opções de filtro por etapa
+    function updateStageFilterOptions() {
+        if (leadFilter) {
+            const currentValue = leadFilter.value;
+            leadFilter.innerHTML = '<option value="">Todas as etapas</option>';
+            Store.data.stages.forEach(stage => {
+                const option = document.createElement('option');
+                option.value = stage;
+                option.textContent = stage;
+                if (stage === currentValue) option.selected = true;
+                leadFilter.appendChild(option);
+            });
+        }
+    }
+    updateStageFilterOptions();
+}
+
+if (window.CRM_READY) {
+    console.log('CRM já pronto – inicializando Funil de Vendas');
+    initFunilVendas();
+} else {
+    console.log('Aguardando CRM_READY para Funil de Vendas');
+    window.addEventListener('crmReady', () => {
+        console.log('Evento crmReady recebido – iniciando Funil de Vendas');
+        initFunilVendas();
+    });
+}

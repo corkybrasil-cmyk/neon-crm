@@ -45,23 +45,10 @@ function navigateTo(page) {
 }
 
 // Estado & Persistência (reutilizado do app original)
-const Store = {
-  key: 'neon-crm-v1',
-  data: {
-    stages: ["novo lead","qualificado","proposta","venda","perdido"],
-    leads: [],
-    tasks: {
-      leads: { stages:["para fazer","fazendo"], items:[] },
-      escola:{ stages:["para fazer","fazendo"], items:[] }
-    },
-    entities: [],
-    theme: {}
-  },
-  load(){
-    try{ const raw = localStorage.getItem(this.key); if(raw){ this.data = JSON.parse(raw); } }catch(e){ console.warn('Falha ao carregar', e) }
-  },
-  save(){ localStorage.setItem(this.key, JSON.stringify(this.data)); }
-};
+// Remove the local Store definition – we will use the global Store from utils.js
+// const Store = { /* removed */ };
+// Use the global Store defined in utils.js
+const Store = window.Store || {};
 
 // Utilidades (reutilizadas do app original)
 const $$ = sel => document.querySelector(sel);
@@ -122,24 +109,29 @@ function calcKPIs(){
   }
 }
 
-// Inicialização
-document.addEventListener('DOMContentLoaded', function() {
-  // Verificar autenticação
-  checkAuth();
-  
-  // Carregar dados
-  Store.load();
-  
-  // Calcular KPIs iniciais
-  calcKPIs();
-  
-  // Event listeners
-  quickRange.addEventListener('change',()=>{
-    customDates.style.display = quickRange.value==='custom' ? 'flex' : 'none';
+// Inicialização – aguarda o CRM estar pronto antes de renderizar
+function initDashboard() {
+    // Verificar autenticação
+    checkAuth();
+    // Calcular KPIs iniciais
     calcKPIs();
-  });
-  
-  if(applyDates) {
-    applyDates.addEventListener('click', calcKPIs);
-  }
-});
+    // Event listeners
+    quickRange.addEventListener('change', () => {
+        customDates.style.display = quickRange.value === 'custom' ? 'flex' : 'none';
+        calcKPIs();
+    });
+    if (applyDates) {
+        applyDates.addEventListener('click', calcKPIs);
+    }
+}
+
+if (window.CRM_READY) {
+    console.log('CRM já pronto – inicializando dashboard');
+    initDashboard();
+} else {
+    console.log('Aguardando CRM_READY para iniciar dashboard');
+    window.addEventListener('crmReady', () => {
+        console.log('Evento crmReady recebido – iniciando dashboard');
+        initDashboard();
+    });
+}

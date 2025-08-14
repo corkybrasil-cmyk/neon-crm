@@ -1,21 +1,52 @@
-// Inicializar dados padrão se não existirem
-if (!Store.data.stages) {
-  Store.data.stages = ["novo lead","qualificado","proposta","venda","perdido"];
+// Função de inicialização **Pessoas & Empresas** – aguarda o CRM estar pronto
+function initPessoasEmpresas() {
+    // Garantir que os dados padrão existam (após ready)
+    if (!Store.data.stages) {
+        Store.data.stages = ["novo lead","qualificado","proposta","venda","perdido"];
+    }
+    if (!Store.data.leads) {
+        Store.data.leads = [];
+    }
+    if (!Store.data.tasks) {
+        Store.data.tasks = {
+            leads: { stages: ["para fazer","fazendo"], items: [] },
+            escola: { stages: ["para fazer","fazendo"], items: [] }
+        };
+    }
+    if (!Store.data.entities) {
+        Store.data.entities = [];
+    }
+    if (!Store.data.theme) {
+        Store.data.theme = {};
+    }
+
+    // Renderizar entidades
+    renderEntities();
+
+    // Event listeners (mesmo código do DOMContentLoaded original)
+    const entFilterType = $$('#entFilterType');
+    if (entFilterType) {
+        entFilterType.addEventListener('change', renderEntities);
+    }
+    const entFilterFinalidade = $$('#entFilterFinalidade');
+    if (entFilterFinalidade) {
+        entFilterFinalidade.addEventListener('input', renderEntities);
+    }
+    const btnNewEnt = $$('#btnNewEnt');
+    if (btnNewEnt) {
+        btnNewEnt.addEventListener('click', () => openEntityModal());
+    }
 }
-if (!Store.data.leads) {
-  Store.data.leads = [];
-}
-if (!Store.data.tasks) {
-  Store.data.tasks = {
-    leads: { stages:["para fazer","fazendo"], items:[] },
-    escola:{ stages:["para fazer","fazendo"], items:[] }
-  };
-}
-if (!Store.data.entities) {
-  Store.data.entities = [];
-}
-if (!Store.data.theme) {
-  Store.data.theme = {};
+
+if (window.CRM_READY) {
+    console.log('CRM já pronto – inicializando Pessoas & Empresas');
+    initPessoasEmpresas();
+} else {
+    console.log('Aguardando CRM_READY para Pessoas & Empresas');
+    window.addEventListener('crmReady', () => {
+        console.log('Evento crmReady recebido – iniciando Pessoas & Empresas');
+        initPessoasEmpresas();
+    });
 }
 
 // Função para renderizar entidades
@@ -124,28 +155,3 @@ function openEntityModal(ent) {
     renderEntities();
   };
 }
-
-// Inicialização
-document.addEventListener('DOMContentLoaded', function() {
-  // Verificar autenticação
-  checkAuth();
-  
-  // Renderizar entidades
-  renderEntities();
-  
-  // Event listeners
-  const entFilterType = $$('#entFilterType');
-  if (entFilterType) {
-    entFilterType.addEventListener('change', renderEntities);
-  }
-  
-  const entFilterFinalidade = $$('#entFilterFinalidade');
-  if (entFilterFinalidade) {
-    entFilterFinalidade.addEventListener('input', renderEntities);
-  }
-  
-  const btnNewEnt = $$('#btnNewEnt');
-  if (btnNewEnt) {
-    btnNewEnt.addEventListener('click', () => openEntityModal());
-  }
-});
