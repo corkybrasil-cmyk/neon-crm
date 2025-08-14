@@ -1,3 +1,25 @@
+// Firebase initialization
+// See https://firebase.google.com/docs/web/setup for more info
+const firebaseConfig = {
+  apiKey: "AIzaSyBHU6yFDCKp9jm9tPGyRqQJFS3amewuuQY",
+  authDomain: "crmdaneon.firebaseapp.com",
+  projectId: "crmdaneon",
+  storageBucket: "crmdaneon.firebasestorage.app",
+  messagingSenderId: "564595832938",
+  appId: "1:564595832938:web:531ed7df3b6df1d9f3f213",
+  measurementId: "G-LQH20DL1WC"
+};
+
+// Import Firebase modules dynamically
+(async () => {
+  const { initializeApp } = await import('https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js');
+  const { getAnalytics } = await import('https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js');
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  window.firebaseApp = app;
+  window.firebaseAnalytics = analytics;
+})();
+
 // Utilitários compartilhados
 const $$ = (selector) => document.querySelector(selector);
 const $$$ = (selector) => document.querySelectorAll(selector);
@@ -143,3 +165,50 @@ if (!Store.data.users) {
     Store.data.users = [];
     console.log('Inicializando array de usuários');
 }
+
+// Firestore integration for Neon CRM
+let firestore;
+(async () => {
+  const { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc } = await import('https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js');
+  firestore = getFirestore(window.firebaseApp);
+  window.firestore = firestore;
+  window.firestoreApi = { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc };
+})();
+
+// Helper functions for leads CRUD
+async function saveLeadToFirebase(lead) {
+  const { collection, addDoc } = window.firestoreApi;
+  await addDoc(collection(firestore, 'leads'), lead);
+}
+
+async function updateLeadInFirebase(leadId, data) {
+  const { doc, updateDoc } = window.firestoreApi;
+  await updateDoc(doc(firestore, 'leads', leadId), data);
+}
+
+async function deleteLeadFromFirebase(leadId) {
+  const { doc, deleteDoc } = window.firestoreApi;
+  await deleteDoc(doc(firestore, 'leads', leadId));
+}
+
+async function getAllLeadsFromFirebase() {
+  const { collection, getDocs } = window.firestoreApi;
+  const querySnapshot = await getDocs(collection(firestore, 'leads'));
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Replace Store.save to sync with Firebase
+Store.save = async function() {
+  // Save all leads to Firebase
+  if (Array.isArray(this.data.leads)) {
+    for (const lead of this.data.leads) {
+      if (!lead.id) {
+        await saveLeadToFirebase(lead);
+      } else {
+        await updateLeadInFirebase(lead.id, lead);
+      }
+    }
+  }
+  // You can add similar logic for users, tasks, etc.
+  localStorage.setItem('neon-crm-data', JSON.stringify(this.data));
+};

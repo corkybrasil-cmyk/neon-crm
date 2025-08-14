@@ -21,8 +21,24 @@ function backToSelection() {
   $$('#taskInterface').classList.add('hidden');
 }
 
+// Função para salvar tarefa no Firebase
+async function saveTaskToFirebase(task, type) {
+  if (!window.firestoreApi) return;
+  const { collection, addDoc } = window.firestoreApi;
+  await addDoc(collection(window.firestore, 'tasks_' + type), task);
+}
+
+// Função para buscar tarefas do Firebase
+async function fetchTasksFromFirebase(type) {
+  if (!window.firestoreApi) return [];
+  const { collection, getDocs } = window.firestoreApi;
+  const querySnapshot = await getDocs(collection(window.firestore, 'tasks_' + type));
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
 // Função para renderizar tarefas
-function renderTasks() {
+async function renderTasks() {
+  Store.data.tasks[currentTaskType].items = await fetchTasksFromFirebase(currentTaskType);
   const area = $$('#taskKanban');
   if (!area) return;
   
@@ -295,3 +311,14 @@ if (window.CRM_READY) {
         initTarefas();
     });
 }
+
+// Patch Store.save to also sync tasks
+const origSave = Store.save;
+Store.save = async function() {
+  for (const type of Object.keys(Store.data.tasks)) {
+    for (const task of Store.data.tasks[type].items) {
+      await saveTaskToFirebase(task, type);
+    }
+  }
+  await origSave.call(Store);
+};

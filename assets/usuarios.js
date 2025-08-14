@@ -7,7 +7,21 @@ function isAdmin() {
   return username === 'admin';
 }
 
-function renderUsers() {
+async function saveUserToFirebase(user) {
+  if (!window.firestoreApi) return;
+  const { collection, addDoc } = window.firestoreApi;
+  await addDoc(collection(window.firestore, 'users'), user);
+}
+
+async function fetchUsersFromFirebase() {
+  if (!window.firestoreApi) return [];
+  const { collection, getDocs } = window.firestoreApi;
+  const querySnapshot = await getDocs(collection(window.firestore, 'users'));
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+async function renderUsers() {
+  Store.data.users = await fetchUsersFromFirebase();
   const tbody = document.getElementById('usersTable');
   tbody.innerHTML = '';
   const users = Store.data.users || [];
@@ -54,6 +68,14 @@ function deleteUser(index) {
     Store.save();
     renderUsers();
   }
+}
+
+const origSave = Store.save;
+Store.save = async function() {
+  for (const user of Store.data.users) {
+    await saveUserToFirebase(user);
+  }
+  await origSave.call(Store);
 }
 
 // Initialize page

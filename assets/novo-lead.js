@@ -31,23 +31,18 @@ function refreshEtapasOptions(){
 }
 
 // Função para adicionar novo lead
-function addLead(leadData) {
+async function addLead(leadData) {
   const lead = {
     id: uid(),
     ...leadData,
     createdAt: todayISO(),
     updatedAt: todayISO()
   };
-  
   Store.data.leads.push(lead);
+  if (window.saveLeadToFirebase) await window.saveLeadToFirebase(lead);
   Store.save();
-  
-  // Limpar formulário
   document.getElementById('leadForm').reset();
-  
   toast('Lead adicionado com sucesso!');
-  
-  // Redirecionar para o funil de vendas após 1 segundo
   setTimeout(() => {
     window.location.href = 'funil-vendas.html';
   }, 1000);

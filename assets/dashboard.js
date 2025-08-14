@@ -56,7 +56,14 @@ function getRange(){
   return {start, end};
 }
 
-function calcKPIs(){
+async function fetchLeadsFromFirebase() {
+  if (window.getAllLeadsFromFirebase) {
+    Store.data.leads = await window.getAllLeadsFromFirebase();
+  }
+}
+
+async function calcKPIs(){
+  await fetchLeadsFromFirebase();
   const {start,end} = getRange();
   const leads = Store.data.leads;
   const entrou = leads.filter(l=> inRange(l.createdAt,start,end)).length;

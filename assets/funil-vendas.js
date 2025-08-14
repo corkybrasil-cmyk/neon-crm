@@ -65,8 +65,15 @@ function getFilteredAndSortedLeads() {
   return leads;
 }
 
+async function fetchLeadsFromFirebase() {
+  if (window.getAllLeadsFromFirebase) {
+    Store.data.leads = await window.getAllLeadsFromFirebase();
+  }
+}
+
 // Função para renderizar leads no Kanban
-function renderLeads() {
+async function renderLeads() {
+  await fetchLeadsFromFirebase();
   const wrap = $$('#kanbanWrap');
   if (!wrap) return;
   

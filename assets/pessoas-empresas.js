@@ -49,8 +49,24 @@ if (window.CRM_READY) {
     });
 }
 
+// Função para salvar entidade no Firebase
+async function saveEntityToFirebase(entity) {
+  if (!window.firestoreApi) return;
+  const { collection, addDoc } = window.firestoreApi;
+  await addDoc(collection(window.firestore, 'entities'), entity);
+}
+
+// Função para buscar entidades do Firebase
+async function fetchEntitiesFromFirebase() {
+  if (!window.firestoreApi) return [];
+  const { collection, getDocs } = window.firestoreApi;
+  const querySnapshot = await getDocs(collection(window.firestore, 'entities'));
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
 // Função para renderizar entidades
-function renderEntities() {
+async function renderEntities() {
+  Store.data.entities = await fetchEntitiesFromFirebase();
   const tbody = $$('#entList');
   if (!tbody) return;
   
@@ -155,3 +171,11 @@ function openEntityModal(ent) {
     renderEntities();
   };
 }
+
+const origSave = Store.save;
+Store.save = async function() {
+  for (const entity of Store.data.entities) {
+    await saveEntityToFirebase(entity);
+  }
+  await origSave.call(Store);
+};
