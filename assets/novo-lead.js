@@ -19,10 +19,17 @@ if (!Store.data.theme) {
 }
 
 // Função para atualizar as opções de etapas
-function refreshEtapasOptions(){
+async function refreshEtapasOptions(){
+  // Aguarda dados do Firebase se necessário
+  if (window.getAllLeadsFromFirebase && (!Store.data.stages || Store.data.stages.length === 0)) {
+    await new Promise(resolve => {
+      if (window.CRM_READY) return resolve();
+      window.addEventListener('crmReady', resolve, { once: true });
+    });
+  }
   const sel = $$('#leadEtapa'); 
   sel.innerHTML = '<option value="">Selecione...</option>';
-  Store.data.stages.forEach(s=>{ 
+  (Store.data.stages || []).forEach(s=>{ 
     const o=document.createElement('option'); 
     o.textContent=s; 
     o.value = s;
