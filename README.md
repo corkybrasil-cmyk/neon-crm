@@ -1,69 +1,195 @@
-# Neon CRM (Single Page App)
+# Neon CRM - Sistema Multi-Página
 
-Aplicativo CRM em uma página (HTML + CSS + JS) pensado para funcionar no navegador, com persistência local e opção de sincronizar dados com um repositório no GitHub.
+Um sistema de CRM completo para gestão de leads, tarefas e relacionamentos, agora organizado em múltiplas páginas para melhor usabilidade.
 
-## Publicação no GitHub Pages
+## 🚀 Funcionalidades
 
-1. Faça um fork ou crie um repositório novo e suba estes arquivos.
-2. Garanta que o arquivo principal se chama `index.html` na raiz do repositório.
-3. Vá em Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: `main` (ou a de sua preferência) e `/root`.
-4. Aguarde a publicação. A página ficará disponível na URL do GitHub Pages do seu repositório.
+### Sistema de Autenticação
+- **Login simples** com credenciais padrão (admin/admin123)
+- **Sessão persistente** usando localStorage
+- **Logout** com redirecionamento automático
 
-## Estrutura
+### Páginas Principais
 
-- `index.html`: Shell da aplicação (marcações HTML e layout).
-- `assets/styles.css`: Estilos e variáveis CSS.
-- `assets/app.js`: Lógica do CRM (estado, UI e integrações).
+#### 1. **Home/Login** (`index.html`)
+- Interface de login elegante
+- Verificação automática de sessão ativa
+- Redirecionamento para dashboard após login
 
-## Persistência de dados
+#### 2. **Dashboard** (`dashboard.html`)
+- **KPIs em tempo real**: Leads que entraram, qualificados, vendas e ticket médio
+- **Filtros de data**: Último dia, 7 dias, 30 dias ou período personalizado
+- **Tabela por bairro**: Distribuição geográfica dos leads
+- **Navegação** para todas as outras páginas
 
-O app salva os dados no `localStorage` por padrão:
-- Leads, tarefas, pessoas/empresas, etapas e tema.
-- Você pode exportar/importar um arquivo `.json` em Dev → Salvar & Backup.
+#### 3. **Novo Lead** (`novo-lead.html`)
+- **Formulário completo** para cadastro de leads
+- **Validação de campos** obrigatórios
+- **Integração** com sistema de etapas personalizáveis
+- **Feedback visual** com toasts
 
-## Sincronização com GitHub (GitHub Sync)
+#### 4. **Funil de Vendas** (`funil-vendas.html`)
+- **Visualização Kanban** com drag & drop
+- **Visualização em lista** com filtros e ordenação
+- **Edição de etapas** em tempo real
+- **Modal de detalhes** do lead
+- **Busca e filtros** avançados
 
-Na aba Dev existe um bloco “GitHub Sync” que permite salvar/carregar o estado em um arquivo JSON dentro de um repositório seu:
+#### 5. **Tarefas** (`tarefas.html`)
+- **Seleção de tipo**: Tarefas do CRM ou Tarefas da Escola
+- **Sistema Kanban** para cada tipo de tarefa
+- **Vinculação** com leads ou pessoas/empresas
+- **Prioridades**: baixa, média, alta, urgente
+- **Prazos** e notificações
 
-- Campos:
-  - Owner (dono), Repo (nome do repositório), Branch (ex.: `main`), Caminho do arquivo (ex.: `neon-crm-data.json`), Token (PAT), Auto salvar.
-- Botões:
-  - Conectar/Carregar do GitHub: baixa o JSON do repositório e carrega no app.
-  - Salvar agora no GitHub: envia o estado atual como commit (API de conteúdos).
-  - Desconectar: limpa as credenciais salvas localmente.
-- Auto salvar:
-  - Quando ligado, toda chamada de `Store.save()` também envia os dados para o GitHub (com debounce).
+#### 6. **Pessoas & Empresas** (`pessoas-empresas.html`)
+- **Cadastro** de pessoas físicas e jurídicas
+- **Filtros** por tipo e finalidade
+- **Ordenação** por qualquer coluna
+- **Integração** com sistema de tarefas
 
-### Permissões do Token (PAT)
+#### 7. **Dev** (`dev.html`)
+- **Personalização de temas** com cores e fontes
+- **Configuração de menu** e layout
+- **GitHub Sync** para backup automático
+- **Sistema de backup** com export/import
+- **Configurações avançadas** do sistema
 
-- Gere um Personal Access Token com permissão de conteúdo para repositórios (Classic: `repo`).
-- O token é guardado no seu navegador (localStorage). Não compartilhe sua URL com o token preenchido no formulário.
+## 🛠️ Tecnologias
 
-### Formato do arquivo JSON
+- **HTML5** - Estrutura semântica
+- **CSS3** - Estilos modernos com variáveis CSS
+- **JavaScript ES6+** - Lógica modular e funcional
+- **LocalStorage** - Persistência de dados
+- **GitHub API** - Sincronização e backup
+
+## 📁 Estrutura de Arquivos
 
 ```
-{
-  "stages": ["novo lead", "qualificado", "proposta", "venda", "perdido"],
-  "leads": [ ... ],
-  "tasks": { "leads": {"stages": [...], "items": [...]}, "escola": {"stages": [...], "items": [...] } },
-  "entities": [ ... ],
-  "theme": { ... }
-}
+neon-crm/
+├── index.html              # Página de login
+├── dashboard.html          # Dashboard principal
+├── novo-lead.html         # Formulário de novo lead
+├── funil-vendas.html      # Gestão de leads
+├── tarefas.html           # Gestão de tarefas
+├── pessoas-empresas.html  # Cadastro de pessoas/empresas
+├── dev.html               # Configurações e desenvolvimento
+├── assets/
+│   ├── styles.css         # Estilos globais
+│   ├── login.js           # Lógica de autenticação
+│   ├── dashboard.js       # Lógica do dashboard
+│   ├── novo-lead.js       # Lógica de novos leads
+│   ├── funil-vendas.js    # Lógica do funil de vendas
+│   ├── tarefas.js         # Lógica de tarefas
+│   ├── pessoas-empresas.js # Lógica de pessoas/empresas
+│   └── dev.js             # Lógica de desenvolvimento
+├── neon-crm-data.json     # Dados do sistema
+└── README.md              # Documentação
 ```
 
-## Desenvolvimento
+## 🔧 Configuração
 
-- Tudo funciona client-side. Não há backend.
-- Para personalizações visuais:
-  - Use as variáveis CSS em `:root` (cores, raios, etc.).
-- Para novas abas/funcionalidades:
-  - Use os geradores de prompt na aba Dev como referência para manter o padrão visual.
+### Credenciais Padrão
+- **Usuário**: `admin`
+- **Senha**: `admin123`
 
-## Limitações
+### Primeiro Acesso
+1. Abra `index.html` no navegador
+2. Use as credenciais padrão
+3. Configure suas preferências na página Dev
+4. Comece a cadastrar leads e tarefas
 
-- Sem autenticação nativa. O controle de acesso depende do repositório GitHub.
-- Se o repositório for público, o JSON também será público (exceto se você usar repositório privado).
+## 📊 Funcionalidades Avançadas
 
-## Licença
+### Sistema de Temas
+- **Temas pré-definidos**: Default, Dark, Blue
+- **Personalização completa**: Cores, fontes, layout
+- **Persistência** das configurações
 
-Defina a licença de sua preferência no repositório (ex.: MIT).
+### GitHub Sync
+- **Backup automático** para repositório GitHub
+- **Sincronização** de dados entre dispositivos
+- **Configuração** via token de acesso
+
+### Sistema de Backup
+- **Export/Import** de dados completos
+- **Backup manual** com timestamp
+- **Restauração** de configurações
+
+## 🎨 Interface
+
+### Design Responsivo
+- **Mobile-first** approach
+- **Adaptação automática** para diferentes telas
+- **Navegação intuitiva** entre páginas
+
+### Componentes Visuais
+- **Cards informativos** para KPIs
+- **Modais** para ações específicas
+- **Toasts** para feedback do usuário
+- **Ícones** e elementos visuais consistentes
+
+## 🔒 Segurança
+
+### Autenticação
+- **Verificação de sessão** em todas as páginas
+- **Redirecionamento automático** para login
+- **Logout seguro** com limpeza de dados
+
+### Dados
+- **Armazenamento local** seguro
+- **Backup criptografado** (quando usando GitHub)
+- **Validação** de entrada de dados
+
+## 🚀 Deploy
+
+### GitHub Pages
+1. Faça push do código para um repositório GitHub
+2. Ative GitHub Pages nas configurações
+3. Configure o GitHub Sync no sistema
+4. Acesse via URL do GitHub Pages
+
+### Servidor Local
+1. Clone o repositório
+2. Abra `index.html` em um servidor local
+3. Configure conforme necessário
+
+## 📝 Changelog
+
+### v2.0.0 - Multi-Página
+- ✅ Migração de single-page para multi-page
+- ✅ Sistema de autenticação implementado
+- ✅ Navegação entre páginas funcionando
+- ✅ Separação de responsabilidades por arquivo
+- ✅ Backup movido para página Dev
+- ✅ Seleção de tipo de tarefa implementada
+
+### v1.0.0 - Single-Page
+- ✅ Sistema básico de CRM
+- ✅ Gestão de leads e tarefas
+- ✅ Personalização de temas
+- ✅ GitHub Sync
+
+## 🤝 Contribuição
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
+
+## 🆘 Suporte
+
+Para dúvidas ou problemas:
+1. Verifique a documentação
+2. Consulte as configurações na página Dev
+3. Faça backup dos dados antes de alterações
+4. Abra uma issue no repositório
+
+---
+
+**Neon CRM** - Transformando a gestão de relacionamentos com clientes! 🚀
