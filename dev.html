@@ -99,6 +99,50 @@
         </div>
         
         <div class="card">
+          <h3>Personalização do CRM</h3>
+          <div class="row">
+            <div><label>Cor dos botões do CRM</label><input id="crmButtonColor" type="color" value="#c7f603"/> <span id="dotCrmButton" class="color-dot"></span></div>
+            <div><label>Usar degradê nos botões</label><input id="crmButtonGradient" type="checkbox"/></div>
+          </div>
+          <div class="row">
+            <div><label>Cor da aplicação</label><input id="appColor" type="color" value="#7ad7ff"/> <span id="dotAppColor" class="color-dot"></span></div>
+            <div><label>Tamanho da fonte</label><select id="appFontSize">
+              <option value="12">Pequeno</option>
+              <option value="14">Médio</option>
+              <option value="16" selected>Normal</option>
+              <option value="18">Grande</option>
+              <option value="20">Muito grande</option>
+            </select></div>
+            <div><label>Fonte da aplicação</label><select id="appFont">
+              <option value="Inter">Inter</option>
+              <option value="Poppins">Poppins</option>
+              <option value="Roboto">Roboto</option>
+              <option value="Open Sans">Open Sans</option>
+              <option value="Arial">Arial</option>
+            </select></div>
+          </div>
+          <div class="row">
+            <div><label>Background do menu</label><input id="menuBgColor" type="color" value="#121734"/> <span id="dotMenuBg" class="color-dot"></span></div>
+            <div><label>Transparência do menu</label><input id="menuOpacity" type="range" min="0" max="100" value="100"/></div>
+            <div><label>Cor do texto do menu</label><input id="menuTextColor" type="color" value="#eef3ff"/> <span id="dotMenuText" class="color-dot"></span></div>
+          </div>
+          <div class="row">
+            <div><label>Fonte do menu</label><select id="menuFont">
+              <option value="Inter">Inter</option>
+              <option value="Poppins">Poppins</option>
+              <option value="Roboto">Roboto</option>
+              <option value="Open Sans">Open Sans</option>
+              <option value="Arial">Arial</option>
+            </select></div>
+            <div><label>Usar degradê no menu</label><input id="menuGradient" type="checkbox"/></div>
+          </div>
+          <div class="row">
+            <button id="applyCrmCustomization" class="primary">Aplicar personalizações</button>
+            <button id="resetCrmCustomization" class="ghost">Restaurar padrão</button>
+          </div>
+        </div>
+        
+        <div class="card">
           <h3>Adicionar nova aba</h3>
           <div class="row">
             <button id="genTabPrompt" class="ghost">Gerar prompt para LLM</button>

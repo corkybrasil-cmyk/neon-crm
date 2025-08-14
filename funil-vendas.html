@@ -48,6 +48,14 @@
               <option value="lista">Lista</option>
             </select>
           </div>
+          <div>
+            <label>Ordenar por</label>
+            <select id="kanbanSort">
+              <option value="nome">Nome</option>
+              <option value="data">Data de criação</option>
+              <option value="valor">Valor</option>
+            </select>
+          </div>
           <div class="right" style="align-self:flex-end;display:flex;gap:8px">
             <button id="editStages" class="ghost">Editar etapas</button>
             <button id="addStage" class="ghost hidden">+ Etapa</button>
@@ -61,6 +69,15 @@
       <div id="listWrap" class="hidden">
         <div class="row" style="margin-bottom:8px; margin-top: 16px;">
           <div><label>Buscar</label><input id="leadSearch" placeholder="Digite para filtrar"/></div>
+          <div><label>Ordenar por</label><select id="leadSort">
+            <option value="nome">Nome</option>
+            <option value="data">Data de criação</option>
+            <option value="valor">Valor</option>
+            <option value="etapa">Etapa</option>
+          </select></div>
+          <div><label>Filtrar por etapa</label><select id="leadFilter">
+            <option value="">Todas as etapas</option>
+          </select></div>
           <div><label>Colunas visíveis</label><div id="leadCols" class="row" style="gap:8px"></div></div>
         </div>
         <table class="list" id="leadTable">

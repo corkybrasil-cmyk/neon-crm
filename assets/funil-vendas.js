@@ -18,6 +18,52 @@ if (!Store.data.theme) {
   Store.data.theme = {};
 }
 
+// Função para obter leads filtrados e ordenados
+function getFilteredAndSortedLeads() {
+  let leads = [...Store.data.leads];
+  
+  // Aplicar filtros
+  const searchTerm = $$('#leadSearch')?.value?.toLowerCase() || '';
+  const filterStage = $$('#leadFilter')?.value || '';
+  
+  if (searchTerm) {
+    leads = leads.filter(l => 
+      l.crianca.toLowerCase().includes(searchTerm) ||
+      l.responsavel.toLowerCase().includes(searchTerm) ||
+      l.telefone.includes(searchTerm) ||
+      l.bairro.toLowerCase().includes(searchTerm)
+    );
+  }
+  
+  if (filterStage) {
+    leads = leads.filter(l => l.etapa === filterStage);
+  }
+  
+  // Aplicar ordenação
+  const sortBy = $$('#leadSort')?.value || 'nome';
+  const kanbanSortBy = $$('#kanbanSort')?.value || 'nome';
+  const currentSortBy = $$('#leadView')?.value === 'kanban' ? kanbanSortBy : sortBy;
+  
+  leads.sort((a, b) => {
+    switch (currentSortBy) {
+      case 'nome':
+        return a.crianca.localeCompare(b.crianca);
+      case 'data':
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      case 'valor':
+        return (b.valorVenda || 0) - (a.valorVenda || 0);
+      case 'etapa':
+        const stageA = Store.data.stages.indexOf(a.etapa);
+        const stageB = Store.data.stages.indexOf(b.etapa);
+        return stageA - stageB;
+      default:
+        return 0;
+    }
+  });
+  
+  return leads;
+}
+
 // Função para renderizar leads no Kanban
 function renderLeads() {
   const wrap = $$('#kanbanWrap');
@@ -84,7 +130,8 @@ function renderLeads() {
   });
   
   // Criar cards dos leads
-  Store.data.leads.forEach(l => {
+  const filteredLeads = getFilteredAndSortedLeads();
+  filteredLeads.forEach(l => {
     const col = wrap.querySelector(`.column[data-stage="${CSS.escape(l.etapa)}"]`) || wrap.querySelector('.column');
     if (!col) return;
     
@@ -124,7 +171,8 @@ function renderLeadTable() {
   
   tbody.innerHTML = '';
   
-  Store.data.leads.forEach(l => {
+  const filteredLeads = getFilteredAndSortedLeads();
+  filteredLeads.forEach(l => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${l.responsavel}</td>
@@ -266,4 +314,42 @@ document.addEventListener('DOMContentLoaded', function() {
     renderLeads();
     toast('Etapas salvas');
   });
+  
+  // Event listeners para filtros e ordenação
+  const leadSearch = $$('#leadSearch');
+  if (leadSearch) {
+    leadSearch.addEventListener('input', renderLeads);
+  }
+  
+  const leadSort = $$('#leadSort');
+  if (leadSort) {
+    leadSort.addEventListener('change', renderLeads);
+  }
+  
+  const leadFilter = $$('#leadFilter');
+  if (leadFilter) {
+    leadFilter.addEventListener('change', renderLeads);
+  }
+  
+  const kanbanSort = $$('#kanbanSort');
+  if (kanbanSort) {
+    kanbanSort.addEventListener('change', renderLeads);
+  }
+  
+  // Inicializar opções do filtro por etapa
+  function updateStageFilterOptions() {
+    if (leadFilter) {
+      const currentValue = leadFilter.value;
+      leadFilter.innerHTML = '<option value="">Todas as etapas</option>';
+      Store.data.stages.forEach(stage => {
+        const option = document.createElement('option');
+        option.value = stage;
+        option.textContent = stage;
+        if (stage === currentValue) option.selected = true;
+        leadFilter.appendChild(option);
+      });
+    }
+  }
+  
+  updateStageFilterOptions();
 });

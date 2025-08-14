@@ -57,6 +57,142 @@ const ThemeSystem = {
 
 
 
+// Sistema de personalização do CRM
+const CrmCustomizationSystem = {
+    applyCustomization() {
+        const buttonColor = $$('#crmButtonColor').value;
+        const buttonGradient = $$('#crmButtonGradient').checked;
+        const appColor = $$('#appColor').value;
+        const appFontSize = $$('#appFontSize').value;
+        const appFont = $$('#appFont').value;
+        const menuBgColor = $$('#menuBgColor').value;
+        const menuOpacity = $$('#menuOpacity').value;
+        const menuTextColor = $$('#menuTextColor').value;
+        const menuFont = $$('#menuFont').value;
+        const menuGradient = $$('#menuGradient').checked;
+        
+        // Aplicar cor dos botões
+        if (buttonGradient) {
+            document.documentElement.style.setProperty('--accent-neon', buttonColor);
+            document.documentElement.style.setProperty('--accent2', this.adjustColor(buttonColor, 20));
+            document.body.classList.add('accent-grad');
+        } else {
+            document.documentElement.style.setProperty('--accent-neon', buttonColor);
+            document.body.classList.remove('accent-grad');
+        }
+        
+        // Aplicar cor da aplicação
+        document.documentElement.style.setProperty('--accent', appColor);
+        
+        // Aplicar fonte da aplicação
+        document.documentElement.style.setProperty('--font', appFont);
+        document.documentElement.style.setProperty('font-size', appFontSize + 'px');
+        
+        // Aplicar configurações do menu
+        const opacity = menuOpacity / 100;
+        const rgbaColor = this.hexToRgba(menuBgColor, opacity);
+        
+        if (menuGradient) {
+            const darkerColor = this.adjustColor(menuBgColor, -20);
+            const darkerRgba = this.hexToRgba(darkerColor, opacity);
+            document.documentElement.style.setProperty('--nav-bg', `linear-gradient(180deg, ${rgbaColor}, ${darkerRgba})`);
+        } else {
+            document.documentElement.style.setProperty('--nav-bg', rgbaColor);
+        }
+        
+        document.documentElement.style.setProperty('--nav-text', menuTextColor);
+        document.documentElement.style.setProperty('--nav-font', menuFont);
+        
+        // Salvar configurações
+        Store.data.crmCustomization = {
+            buttonColor,
+            buttonGradient,
+            appColor,
+            appFontSize,
+            appFont,
+            menuBgColor,
+            menuOpacity,
+            menuTextColor,
+            menuFont,
+            menuGradient
+        };
+        Store.save();
+        
+        toast('Personalizações aplicadas!');
+    },
+    
+    resetCustomization() {
+        // Restaurar valores padrão
+        $$('#crmButtonColor').value = '#c7f603';
+        $$('#crmButtonGradient').checked = false;
+        $$('#appColor').value = '#7ad7ff';
+        $$('#appFontSize').value = '16';
+        $$('#appFont').value = 'Inter';
+        $$('#menuBgColor').value = '#121734';
+        $$('#menuOpacity').value = '100';
+        $$('#menuTextColor').value = '#eef3ff';
+        $$('#menuFont').value = 'Inter';
+        $$('#menuGradient').checked = false;
+        
+        // Aplicar configurações padrão
+        this.applyCustomization();
+        
+        // Remover configurações salvas
+        delete Store.data.crmCustomization;
+        Store.save();
+        
+        toast('Personalizações restauradas ao padrão!');
+    },
+    
+    loadCustomization() {
+        const config = Store.data.crmCustomization;
+        if (config) {
+            $$('#crmButtonColor').value = config.buttonColor || '#c7f603';
+            $$('#crmButtonGradient').checked = config.buttonGradient || false;
+            $$('#appColor').value = config.appColor || '#7ad7ff';
+            $$('#appFontSize').value = config.appFontSize || '16';
+            $$('#appFont').value = config.appFont || 'Inter';
+            $$('#menuBgColor').value = config.menuBgColor || '#121734';
+            $$('#menuOpacity').value = config.menuOpacity || '100';
+            $$('#menuTextColor').value = config.menuTextColor || '#eef3ff';
+            $$('#menuFont').value = config.menuFont || 'Inter';
+            $$('#menuGradient').checked = config.menuGradient || false;
+        }
+    },
+    
+    // Funções utilitárias
+    adjustColor(hex, percent) {
+        const num = parseInt(hex.replace('#', ''), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = (num >> 16) + amt;
+        const G = (num >> 8 & 0x00FF) + amt;
+        const B = (num & 0x0000FF) + amt;
+        return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+            (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+            (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+    },
+    
+    hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    },
+    
+    init() {
+        this.loadCustomization();
+        
+        // Configurar eventos
+        $$('#applyCrmCustomization').addEventListener('click', () => {
+            this.applyCustomization();
+        });
+        
+        $$('#resetCrmCustomization').addEventListener('click', () => {
+            this.resetCustomization();
+        });
+    }
+};
+
 // Sistema de backup
 const BackupSystem = {
     async createBackup() {
@@ -213,6 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ThemeSystem.init();
     BackupSystem.init();
     GitHubSyncSystem.init();
+    CrmCustomizationSystem.init();
     
     // Configurar botão de backup no header
     $$('.backup-btn').addEventListener('click', () => {

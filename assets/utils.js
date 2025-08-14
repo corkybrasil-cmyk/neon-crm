@@ -45,6 +45,21 @@ function toast(msg, type = 'info') {
 // Configurações do GitHub Sync
 const GitHubSync = {
     cfg: JSON.parse(localStorage.getItem('neon-crm-github-sync') || '{}'),
+    
+    // Configuração automática com as credenciais fornecidas
+    setupAutoSync() {
+        if (!this.cfg.repo) {
+            this.cfg = {
+                repo: 'corkybrasil-cmyk/neon-crm',
+                token: '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',
+                branch: 'main',
+                auto: true,
+                lastSha: null
+            };
+            this.save();
+            console.log('GitHub Auto-Sync configurado automaticamente');
+        }
+    },
     save() {
         localStorage.setItem('neon-crm-github-sync', JSON.stringify(this.cfg));
     },
@@ -157,9 +172,12 @@ function closeModal() {
     $$('#modalBody').innerHTML = '';
 }
 
-// Inicializar modal
+// Inicializar modal e GitHub Sync
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', function() {
+        // Configurar GitHub Auto-Sync
+        GitHubSync.setupAutoSync();
+        
         if ($$('#modalClose')) {
             $$('#modalClose').onclick = closeModal;
         }

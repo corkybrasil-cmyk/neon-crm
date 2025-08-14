@@ -152,6 +152,11 @@ function renderTasks() {
     
     col.appendChild(d);
   });
+  
+  // Aplicar drag and drop para reordenar etapas se estiver editando
+  if (document.body.dataset.editTaskStages) {
+    makeStagesDraggable();
+  }
 }
 
 // Função para personalizar etapas
@@ -162,6 +167,38 @@ function customizeTaskStages(type) {
     Store.save();
     toast('Etapas atualizadas');
   }
+}
+
+// Função para reordenar etapas via drag and drop
+function makeStagesDraggable() {
+  const columns = document.querySelectorAll('.column');
+  columns.forEach((col, index) => {
+    col.draggable = true;
+    col.dataset.index = index;
+    
+    col.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', index);
+    });
+    
+    col.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+    
+    col.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+      const toIndex = parseInt(col.dataset.index);
+      
+      if (fromIndex !== toIndex) {
+        const cfg = Store.data.tasks[currentTaskType];
+        const [movedStage] = cfg.stages.splice(fromIndex, 1);
+        cfg.stages.splice(toIndex, 0, movedStage);
+        Store.save();
+        renderTasks();
+        makeStagesDraggable(); // Reaplicar drag and drop
+      }
+    });
+  });
 }
 
 // Função para criar nova tarefa
@@ -187,7 +224,7 @@ function openTaskModal(type, t) {
       <div><label>Descrição</label><input id='tDesc' value='${t?.descricao || ''}'/></div>
     </div>
     <div class='row'>
-      <div><label>Prazo</label><input id='tPrazo' type='date' value='${t ? new Date(t.prazo).toISOString().slice(0, 10) : ''}'/></div>
+      <div><label>Prazo *</label><input id='tPrazo' type='date' value='${t ? new Date(t.prazo).toISOString().slice(0, 10) : ''}' required/></div>
       <div>
         <label>Prioridade</label>
         <select id='tPrio'>${['baixa', 'média', 'alta', 'urgente'].map(p => `<option ${t && t.prioridade === p ? 'selected' : ''}>${p}</option>`).join('')}</select>
@@ -211,6 +248,11 @@ function openTaskModal(type, t) {
     
     if (!item.descricao) {
       toast('Descrição obrigatória');
+      return;
+    }
+    
+    if (!$$('#tPrazo').value) {
+      toast('Prazo é obrigatório');
       return;
     }
     
