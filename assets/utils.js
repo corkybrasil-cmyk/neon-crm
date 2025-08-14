@@ -3,19 +3,10 @@ const $$ = (selector) => document.querySelector(selector);
 const $$$ = (selector) => document.querySelectorAll(selector);
 
 // Sistema de armazenamento
-// Data is loaded exclusively from GitHub before any localStorage data is used.
 const Store = {
-    data: {}, // will be populated after GitHub fetch
+    data: {},
     save() {
-        // Persist to localStorage after data is fully loaded
         localStorage.setItem('neon-crm-data', JSON.stringify(this.data));
-        // Auto-sync with GitHub if configured
-        if (GitHubSync.cfg.auto && GitHubSync.cfg.token && GitHubSync.cfg.repo) {
-            console.log('Auto-sync ativado, salvando no GitHub...');
-            GitHubSync.debouncedSaveNow();
-        } else {
-            console.log('Auto-sync desativado ou não configurado');
-        }
     }
 };
 // Expose Store globally so other scripts (e.g., dashboard.js) can use the same instance
@@ -50,196 +41,7 @@ function toast(msg, type = 'info') {
 }
 
 // Configurações do GitHub Sync
-const GitHubSync = {
-    cfg: JSON.parse(localStorage.getItem('neon-crm-github-sync') || '{}'),
-    
-    // Configuração automática com as credenciais fornecidas
-    setupAutoSync() {
-        if (!this.cfg.repo) {
-            this.cfg = {
-                repo: 'corkybrasil-cmyk/neon-crm',
-                token: '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',
-                branch: 'main',
-                auto: true,
-                lastSha: null
-            };
-            this.save();
-            console.log('GitHub Auto-Sync configurado automaticamente');
-        }
-    },
-    save() {
-        localStorage.setItem('neon-crm-github-sync', JSON.stringify(this.cfg));
-    },
-    
-    headers() {
-        const h = { 'Accept': 'application/vnd.github+json' };
-        if (this.cfg.token) h['Authorization'] = 'Bearer ' + this.cfg.token;
-        return h;
-    },
-    
-    // Salvar token no GitHub para sincronização entre dispositivos
-    async saveTokenToGitHub(token) {
-        const url = `https://api.github.com/repos/${this.cfg.repo}/contents/neon-crm-token.json`;
-        const tokenData = {
-            token: token,
-            updatedAt: new Date().toISOString(),
-            device: navigator.userAgent
-        };
-        const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(tokenData, null, 2))));
-        // Prepare body without sha initially
-        const body = { 
-            message: `Neon CRM: Token atualizado - ${new Date().toISOString()}`, 
-            content: b64, 
-            branch: this.cfg.branch || 'main' 
-        };
-        // Try to get existing file SHA to avoid 409 conflict
-        try {
-            const existing = await fetch(`${url}?ref=${encodeURIComponent(this.cfg.branch || 'main')}`, { headers: this.headers() });
-            if (existing.ok) {
-                const data = await existing.json();
-                if (data.sha) {
-                    body.sha = data.sha;
-                }
-            }
-        } catch (e) {
-            // ignore errors, will attempt create without sha
-        }
-        console.log('Saving token to GitHub with body:', body);
-        const res = await fetch(url, { 
-            method: 'PUT', 
-            headers: { ...this.headers(), 'Content-Type': 'application/json' }, 
-            body: JSON.stringify(body) 
-        });
-        if (!res.ok) {
-            const errText = await res.text();
-            console.error('Error saving token to GitHub:', res.status, errText);
-            throw new Error('Falha ao salvar token no GitHub: ' + res.status + ' - ' + errText);
-        }
-        const data = await res.json();
-        this.cfg.token = token;
-        this.save();
-        console.log('Token saved successfully');
-    },
-    
-    // Carregar token do GitHub
-    async loadTokenFromGitHub() {
-        try {
-            const url = `https://api.github.com/repos/${this.cfg.repo}/contents/neon-crm-token.json?ref=${encodeURIComponent(this.cfg.branch || 'main')}`;
-            const res = await fetch(url, { headers: this.headers() });
-            
-            if (res.ok) {
-                const data = await res.json();
-                const tokenData = JSON.parse(atob((data.content || '').replace(/\n/g, '')));
-                this.cfg.token = tokenData.token;
-                this.save();
-                console.log('Token carregado do GitHub');
-                return true;
-            }
-        } catch (error) {
-            console.log('Token não encontrado no GitHub ou erro ao carregar');
-        }
-        return false;
-    },
-    
-    async fetchFile() {
-        const url = `https://api.github.com/repos/${this.cfg.repo}/contents/neon-crm-data.json?ref=${encodeURIComponent(this.cfg.branch || 'main')}`;
-        console.log('Buscando arquivo:', url);
-        const res = await fetch(url, { headers: this.headers() });
-        if (res.status === 404) {
-            console.log('Arquivo não encontrado, será criado');
-            return { content: null, sha: null };
-        }
-        if (!res.ok) {
-            console.error('Erro ao buscar arquivo:', res.status, res.statusText);
-            throw new Error('Falha ao buscar arquivo: ' + res.status);
-        }
-        const data = await res.json();
-        const content = atob((data.content || '').replace(/\n/g, ''));
-        console.log('Arquivo encontrado, SHA:', data.sha);
-        return { content, sha: data.sha };
-    },
-    
-    async saveFile(str) {
-        const url = `https://api.github.com/repos/${this.cfg.repo}/contents/neon-crm-data.json`;
-        const b64 = btoa(unescape(encodeURIComponent(str)));
-        const body = { 
-            message: `Neon CRM sync: ${new Date().toISOString()}`, 
-            content: b64, 
-            branch: this.cfg.branch || 'main' 
-        };
-        if (this.cfg.lastSha) {
-            body.sha = this.cfg.lastSha;
-            console.log('Usando SHA existente:', this.cfg.lastSha);
-        } else {
-            console.log('Primeira vez salvando, sem SHA');
-        }
-        
-        console.log('Salvando arquivo no GitHub...');
-        const res = await fetch(url, { 
-            method: 'PUT', 
-            headers: { ...this.headers(), 'Content-Type': 'application/json' }, 
-            body: JSON.stringify(body) 
-        });
-        
-        if (!res.ok) {
-            const errorText = await res.text();
-            console.error('Erro ao salvar no GitHub:', res.status, errorText);
-            throw new Error('Falha ao salvar no GitHub: ' + res.status + ' - ' + errorText);
-        }
-        const data = await res.json();
-        this.cfg.lastSha = data.content?.sha || this.cfg.lastSha;
-        this.save();
-        console.log('Arquivo salvo com sucesso, novo SHA:', this.cfg.lastSha);
-    },
-    
-    async saveNow(retry409 = false) {
-        if (!this.cfg.repo || !this.cfg.token) {
-            console.log('GitHub Sync não configurado');
-            return;
-        }
-        try {
-            console.log('Iniciando sincronização com GitHub...');
-            const str = JSON.stringify(Store.data, null, 2);
-            // Sempre buscar o SHA mais recente antes de salvar
-            try {
-                console.log('Obtendo SHA mais recente do arquivo...');
-                const { sha } = await this.fetchFile();
-                this.cfg.lastSha = sha || '';
-                this.save();
-                console.log('SHA atualizado:', this.cfg.lastSha);
-            } catch (error) {
-                console.log('Não foi possível obter SHA, continuará sem SHA');
-                this.cfg.lastSha = '';
-                this.save();
-            }
-            await this.saveFile(str);
-            console.log('Dados sincronizados com GitHub com sucesso');
-            toast('Dados sincronizados com GitHub', 'success');
-        } catch (err) {
-            // Se for erro 409, buscar SHA novamente e tentar salvar mais uma vez
-            if (!retry409 && err.message && err.message.includes('409')) {
-                console.warn('Erro 409 detectado, tentando novamente com SHA atualizado...');
-                await this.saveNow(true);
-                return;
-            }
-            console.error('Erro ao sincronizar com GitHub:', err);
-            toast('Erro ao sincronizar com GitHub: ' + err.message, 'error');
-            if (err.message.includes('401') || err.message.includes('403')) {
-                console.log('Token pode ter expirado, marcando para reconfiguração');
-                this.cfg.token = null;
-                this.save();
-            }
-        }
-    },
-    
-    debouncedSaveNow: (() => {
-        let t;
-        return () => {
-            clearTimeout(t);
-            t = setTimeout(() => GitHubSync.saveNow(), 1200);
-        };
-    })()
-};
+
 
 // Funções utilitárias
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -284,26 +86,19 @@ function closeModal() {
 }
 
 // Função ready – garante que o CRM só será exibido depois que os dados do GitHub estiverem disponíveis
-async function ready() {
-    // 1️⃣ Configura auto‑sync
-    GitHubSync.setupAutoSync();
-
-    // 2️⃣ Busca o arquivo no GitHub
-    const { content } = await GitHubSync.fetchFile();
-
-    if (content) {
-        Store.data = JSON.parse(content);
-        console.log('Dados carregados do GitHub (ready)');
-    } else {
-        console.error('ERRO 69420: neon‑crm‑data.json não encontrado no repositório');
-        const local = localStorage.getItem('neon-crm-data');
-        if (local) {
+function ready() {
+    const local = localStorage.getItem('neon-crm-data');
+    if (local) {
+        try {
             Store.data = JSON.parse(local);
-            console.log('Dados carregados do localStorage como fallback');
-        } else {
-            console.warn('Nenhum dado local disponível');
+            console.log('Dados carregados do localStorage');
+        } catch (e) {
+            console.error('Erro ao carregar dados do localStorage:', e);
             Store.data = {};
         }
+    } else {
+        Store.data = {};
+        console.warn('Nenhum dado local disponível, inicializando Store.data vazio');
     }
 
     // Ensure required arrays exist
@@ -316,17 +111,11 @@ async function ready() {
         console.log('Inicializando array de usuários');
     }
 
-    // 3️⃣ Persiste em localStorage e dispara auto‑sync
     Store.save();
-
-    // 4️⃣ Marca como pronto
     window.CRM_READY = true;
     console.log('Página pronta (ready)');
-
-    // 5️⃣ Dispara evento customizado
     window.dispatchEvent(new Event('crmReady'));
 }
-// Expor a função globalmente (para uso sem import)
 window.ready = ready;
 
 // Inicializar modal e GitHub Sync

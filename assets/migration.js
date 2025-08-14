@@ -25,30 +25,6 @@ function migrateOldData() {
         }
     }
     
-    // Verificar se há dados antigos do GitHub Sync
-    const oldGitHubData = localStorage.getItem('neon-crm-github');
-    if (oldGitHubData) {
-        try {
-            const parsed = JSON.parse(oldGitHubData);
-            
-            // Migrar configurações do GitHub
-            if (parsed.owner && parsed.repo) {
-                GitHubSync.cfg.repo = `${parsed.owner}/${parsed.repo}`;
-            }
-            if (parsed.token) GitHubSync.cfg.token = parsed.token;
-            if (parsed.branch) GitHubSync.cfg.branch = parsed.branch;
-            if (parsed.auto !== undefined) GitHubSync.cfg.autoSync = parsed.auto;
-            
-            GitHubSync.save();
-            
-            // Remover dados antigos
-            localStorage.removeItem('neon-crm-github');
-            
-            console.log('Configurações do GitHub migradas com sucesso');
-        } catch (error) {
-            console.error('Erro ao migrar configurações do GitHub:', error);
-        }
-    }
 }
 
 // Executar migração quando o script for carregado
