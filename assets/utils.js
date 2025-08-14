@@ -201,15 +201,17 @@ const GitHubSync = {
         try {
             console.log('Iniciando sincronização com GitHub...');
             const str = JSON.stringify(Store.data, null, 2);
-            if (!this.cfg.lastSha) {
-                try {
-                    console.log('Buscando SHA do arquivo existente...');
-                    const { sha } = await this.fetchFile();
-                    this.cfg.lastSha = sha || '';
-                    this.save();
-                } catch (error) {
-                    console.log('Arquivo não existe ainda, será criado');
-                }
+            // Always fetch the latest SHA before saving to avoid 409 conflicts
+            try {
+                console.log('Obtendo SHA mais recente do arquivo...');
+                const { sha } = await this.fetchFile();
+                this.cfg.lastSha = sha || '';
+                this.save();
+                console.log('SHA atualizado:', this.cfg.lastSha);
+            } catch (error) {
+                console.log('Não foi possível obter SHA, continuará sem SHA');
+                this.cfg.lastSha = '';
+                this.save();
             }
             await this.saveFile(str);
             console.log('Dados sincronizados com GitHub com sucesso');
