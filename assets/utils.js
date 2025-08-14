@@ -73,6 +73,52 @@ const GitHubSync = {
         return h;
     },
     
+    // Salvar token no GitHub para sincronização entre dispositivos
+    async saveTokenToGitHub(token) {
+        const url = `https://api.github.com/repos/${this.cfg.repo}/contents/neon-crm-token.json`;
+        const tokenData = {
+            token: token,
+            updatedAt: new Date().toISOString(),
+            device: navigator.userAgent
+        };
+        const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(tokenData, null, 2))));
+        
+        const body = { 
+            message: `Neon CRM: Token atualizado - ${new Date().toISOString()}`, 
+            content: b64, 
+            branch: this.cfg.branch || 'main' 
+        };
+        
+        const res = await fetch(url, { 
+            method: 'PUT', 
+            headers: { ...this.headers(), 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(body) 
+        });
+        
+        if (!res.ok) throw new Error('Falha ao salvar token no GitHub: ' + res.status);
+        console.log('Token salvo no GitHub com sucesso');
+    },
+    
+    // Carregar token do GitHub
+    async loadTokenFromGitHub() {
+        try {
+            const url = `https://api.github.com/repos/${this.cfg.repo}/contents/neon-crm-token.json?ref=${encodeURIComponent(this.cfg.branch || 'main')}`;
+            const res = await fetch(url, { headers: this.headers() });
+            
+            if (res.ok) {
+                const data = await res.json();
+                const tokenData = JSON.parse(atob((data.content || '').replace(/\n/g, '')));
+                this.cfg.token = tokenData.token;
+                this.save();
+                console.log('Token carregado do GitHub');
+                return true;
+            }
+        } catch (error) {
+            console.log('Token não encontrado no GitHub ou erro ao carregar');
+        }
+        return false;
+    },
+    
     async fetchFile() {
         const url = `https://api.github.com/repos/${this.cfg.repo}/contents/neon-crm-data.json?ref=${encodeURIComponent(this.cfg.branch || 'main')}`;
         console.log('Buscando arquivo:', url);

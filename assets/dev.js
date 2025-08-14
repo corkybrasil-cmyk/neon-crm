@@ -131,7 +131,7 @@ const GitHubDiagnostic = {
         }
     },
     
-    updateToken() {
+    async updateToken() {
         const newToken = $$('#newToken').value.trim();
         if (!newToken) {
             toast('Digite o novo token', 'error');
@@ -143,38 +143,100 @@ const GitHubDiagnostic = {
             return;
         }
         
-        // Atualizar token
-        GitHubSync.cfg.token = newToken;
-        GitHubSync.cfg.lastSha = null; // Resetar SHA para forçar nova sincronização
-        GitHubSync.save();
+        const results = $$('#diagnosticResults');
+        results.innerHTML = '<div style="color: var(--text-dim);">Atualizando token...</div>';
         
-        // Limpar campo
-        $$('#newToken').value = '';
+        try {
+            // Atualizar token local
+            GitHubSync.cfg.token = newToken;
+            GitHubSync.cfg.lastSha = null; // Resetar SHA para forçar nova sincronização
+            GitHubSync.save();
+            
+            // Salvar token no GitHub para sincronização entre dispositivos
+            await GitHubSync.saveTokenToGitHub(newToken);
+            
+            // Limpar campo
+            $$('#newToken').value = '';
+            
+            results.innerHTML = '<div style="color: var(--success);">✅ Token atualizado e sincronizado com sucesso!</div>';
+            toast('Token atualizado e sincronizado!', 'success');
+            
+            // Testar conexão automaticamente
+            setTimeout(() => {
+                this.testConnection();
+            }, 1000);
+            
+        } catch (error) {
+            results.innerHTML = `<div style="color: var(--danger);">❌ Erro ao atualizar token: ${error.message}</div>`;
+            toast('Erro ao atualizar token: ' + error.message, 'error');
+        }
+    },
+    
+    async loadTokenFromGitHub() {
+        const results = $$('#diagnosticResults');
+        results.innerHTML = '<div style="color: var(--text-dim);">Carregando token do GitHub...</div>';
         
-        toast('Token atualizado com sucesso!', 'success');
-        
-        // Testar conexão automaticamente
-        setTimeout(() => {
-            this.testConnection();
-        }, 1000);
+        try {
+            const success = await GitHubSync.loadTokenFromGitHub();
+            if (success) {
+                results.innerHTML = '<div style="color: var(--success);">✅ Token carregado do GitHub com sucesso!</div>';
+                toast('Token carregado do GitHub!', 'success');
+            } else {
+                results.innerHTML = '<div style="color: var(--warning);">⚠️ Token não encontrado no GitHub</div>';
+                toast('Token não encontrado no GitHub', 'warning');
+            }
+        } catch (error) {
+            results.innerHTML = `<div style="color: var(--danger);">❌ Erro ao carregar token: ${error.message}</div>`;
+            toast('Erro ao carregar token: ' + error.message, 'error');
+        }
     },
     
     init() {
-        $$('#testConnection').addEventListener('click', () => this.testConnection());
-        $$('#forceSync').addEventListener('click', () => this.forceSync());
-        $$('#checkConfig').addEventListener('click', () => this.checkConfig());
-        $$('#updateToken').addEventListener('click', () => this.updateToken());
+        // Configurar event listeners para os botões existentes
+        const testConnectionBtn = $$('#testConnection');
+        if (testConnectionBtn) {
+            testConnectionBtn.addEventListener('click', () => this.testConnection());
+        }
         
-        // Adicionar botão para verificar token
-        const checkTokenBtn = document.createElement('button');
-        checkTokenBtn.textContent = 'Verificar Token';
-        checkTokenBtn.className = 'ghost';
-        checkTokenBtn.addEventListener('click', () => this.checkTokenPermissions());
+        const forceSyncBtn = $$('#forceSync');
+        if (forceSyncBtn) {
+            forceSyncBtn.addEventListener('click', () => this.forceSync());
+        }
         
+        const checkConfigBtn = $$('#checkConfig');
+        if (checkConfigBtn) {
+            checkConfigBtn.addEventListener('click', () => this.checkConfig());
+        }
+        
+        const updateTokenBtn = $$('#updateToken');
+        if (updateTokenBtn) {
+            updateTokenBtn.addEventListener('click', () => this.updateToken());
+        }
+        
+        const loadTokenBtn = $$('#loadTokenBtn');
+        if (loadTokenBtn) {
+            loadTokenBtn.addEventListener('click', () => this.loadTokenFromGitHub());
+        }
+        
+        // Adicionar botões adicionais
         const buttonRow = $$('.row');
         if (buttonRow) {
+            // Botão para verificar token
+            const checkTokenBtn = document.createElement('button');
+            checkTokenBtn.textContent = 'Verificar Token';
+            checkTokenBtn.className = 'ghost';
+            checkTokenBtn.addEventListener('click', () => this.checkTokenPermissions());
             buttonRow.appendChild(checkTokenBtn);
+            
+            // Botão para carregar token do GitHub
+            const loadTokenBtn2 = document.createElement('button');
+            loadTokenBtn2.textContent = 'Carregar Token do GitHub';
+            loadTokenBtn2.className = 'ghost';
+            loadTokenBtn2.addEventListener('click', () => this.loadTokenFromGitHub());
+            buttonRow.appendChild(loadTokenBtn2);
         }
+        
+        console.log('GitHubDiagnostic inicializado com sucesso');
     }
 };
 
@@ -189,4 +251,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         GitHubDiagnostic.checkConfig();
     }, 500);
+    
+    console.log('Página Dev carregada com sucesso');
 });

@@ -70,7 +70,8 @@
         </div>
 
         <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; margin: 8px 0;">
-          <h5>2. Atualizar Token</h5>
+          <h5>2. Atualizar Token (Sincronizado entre dispositivos)</h5>
+          <p><strong>✨ NOVO:</strong> O token agora é salvo no GitHub e sincronizado automaticamente entre todos os dispositivos!</p>
           <div class="row">
             <div style="flex: 1;">
               <label>Novo Token do GitHub</label>
@@ -80,16 +81,28 @@
               <button id="updateToken" class="primary">Atualizar Token</button>
             </div>
           </div>
+          <p style="font-size: 12px; margin-top: 8px; color: var(--text-dim);">
+            💡 <strong>Vantagem:</strong> Após atualizar o token aqui, ele ficará disponível automaticamente em qualquer computador que acesse o CRM!
+          </p>
         </div>
 
         <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; margin: 8px 0;">
-          <h5>3. Verificar Logs</h5>
+          <h5>3. Carregar Token do GitHub</h5>
+          <p>Se você já configurou o token em outro dispositivo, pode carregá-lo aqui:</p>
+          <button id="loadTokenBtn" class="ghost">Carregar Token do GitHub</button>
+          <p style="font-size: 12px; margin-top: 8px; color: var(--text-dim);">
+            🔄 Isso carregará o token mais recente salvo no repositório GitHub.
+          </p>
+        </div>
+
+        <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; margin: 8px 0;">
+          <h5>4. Verificar Logs</h5>
           <p>Abra o Console do navegador (F12) para ver logs detalhados da sincronização.</p>
           <button id="openConsole" class="ghost" onclick="console.log('GitHub Sync Status:', GitHubSync.cfg); console.log('Store Data:', Store.data);">Mostrar Status no Console</button>
         </div>
 
         <div style="background: var(--bg-soft); padding: 12px; border-radius: 8px; margin: 8px 0;">
-          <h5>4. Forçar Sincronização Manual</h5>
+          <h5>5. Forçar Sincronização Manual</h5>
           <p>Se o auto-sync não funcionar, use o botão "Forçar Sincronização" acima.</p>
         </div>
       </div>
