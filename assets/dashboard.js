@@ -13,37 +13,6 @@ function logout() {
   window.location.href = 'index.html';
 }
 
-// Navegação entre páginas
-function navigateTo(page) {
-  // Remover classe active de todos os botões
-  document.querySelectorAll('nav .tab').forEach(btn => btn.classList.remove('active'));
-  
-  // Adicionar classe active ao botão clicado
-  event.target.closest('.tab').classList.add('active');
-  
-  // Navegar para a página correspondente
-  switch(page) {
-    case 'dashboard':
-      // Já estamos no dashboard
-      break;
-    case 'novo-lead':
-      window.location.href = 'novo-lead.html';
-      break;
-    case 'funil-vendas':
-      window.location.href = 'funil-vendas.html';
-      break;
-    case 'tarefas':
-      window.location.href = 'tarefas.html';
-      break;
-    case 'pessoas-empresas':
-      window.location.href = 'pessoas-empresas.html';
-      break;
-    case 'dev':
-      window.location.href = 'dev.html';
-      break;
-  }
-}
-
 // Estado & Persistência (reutilizado do app original)
 // Remove the local Store definition – we will use the global Store from utils.js
 // const Store = { /* removed */ };
@@ -135,3 +104,6 @@ if (window.CRM_READY) {
         initDashboard();
     });
 }
+
+// Remover função duplicada de navegação
+// (A função navigateTo foi removida deste arquivo. Use a de utils.js)
