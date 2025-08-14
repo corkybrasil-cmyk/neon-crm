@@ -8,21 +8,37 @@
   ],
   "leads": [
     {
-      "id": "f2z1cq8",
-      "responsavel": "Marcel Tasso Guimarães",
-      "crianca": "Marcel Tasso Guimarães",
-      "idade": 9,
-      "periodo": "manhã",
-      "frequencia": "3",
-      "fonte": "marketing digital",
+      "id": "ft47ehd",
+      "responsavel": "Marcel Tasso",
       "telefone": "44991433360",
       "bairro": "Zona 04",
+      "crianca": "Romeu",
+      "idade": 5,
+      "periodo": "manhã",
+      "frequencia": "5",
+      "fonte": "indicação",
       "etapa": "novo lead",
-      "valorVenda": 800,
+      "valorVenda": 689,
       "observacoes": "",
-      "createdAt": "2025-08-13T19:03:32.286Z",
-      "updatedAt": "2025-08-13T19:03:32.287Z",
-      "stageChangedAt": "2025-08-13T19:03:32.287Z"
+      "createdAt": "2025-08-14T12:55:33.420Z",
+      "updatedAt": "2025-08-14T12:55:33.420Z"
+    },
+    {
+      "id": "99ex3wc",
+      "responsavel": "Lais",
+      "telefone": "44991236611",
+      "bairro": "Zona 03",
+      "crianca": "Jorge",
+      "idade": 7,
+      "periodo": "manhã",
+      "frequencia": "4",
+      "fonte": "indicação",
+      "etapa": "novo lead",
+      "valorVenda": null,
+      "observacoes": "",
+      "createdAt": "2025-08-14T13:30:16.753Z",
+      "updatedAt": "2025-08-14T13:31:29.101Z",
+      "stageChangedAt": "2025-08-14T13:31:29.101Z"
     }
   ],
   "tasks": {
@@ -31,16 +47,47 @@
         "para fazer",
         "fazendo"
       ],
-      "items": []
+      "items": [
+        {
+          "id": "sqjavmr",
+          "tipo": "leads",
+          "leadId": "ft47ehd",
+          "descricao": "mandar email",
+          "prazo": "2025-08-14T13:32:56.984Z",
+          "prioridade": "baixa",
+          "etapa": "para fazer"
+        }
+      ]
     },
     "escola": {
       "stages": [
         "para fazer",
         "fazendo"
       ],
-      "items": []
+      "items": [
+        {
+          "id": "lz3o316",
+          "tipo": "escola",
+          "entityId": "6vtgn2m",
+          "descricao": "dar sache",
+          "prazo": "2025-08-15T00:00:00.000Z",
+          "prioridade": "baixa",
+          "etapa": "para fazer"
+        }
+      ]
     }
   },
-  "entities": [],
-  "theme": {}
+  "entities": [
+    {
+      "id": "6vtgn2m",
+      "tipo": "pessoa",
+      "nome": "Romeu",
+      "telefone": "3812102182",
+      "finalidade": "",
+      "contatoEmpresa": ""
+    }
+  ],
+  "theme": {
+    "name": "default"
+  }
 }
