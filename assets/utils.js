@@ -82,21 +82,39 @@ const GitHubSync = {
             device: navigator.userAgent
         };
         const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(tokenData, null, 2))));
-        
+        // Prepare body without sha initially
         const body = { 
             message: `Neon CRM: Token atualizado - ${new Date().toISOString()}`, 
             content: b64, 
             branch: this.cfg.branch || 'main' 
         };
-        
+        // Try to get existing file SHA to avoid 409 conflict
+        try {
+            const existing = await fetch(`${url}?ref=${encodeURIComponent(this.cfg.branch || 'main')}`, { headers: this.headers() });
+            if (existing.ok) {
+                const data = await existing.json();
+                if (data.sha) {
+                    body.sha = data.sha;
+                }
+            }
+        } catch (e) {
+            // ignore errors, will attempt create without sha
+        }
+        console.log('Saving token to GitHub with body:', body);
         const res = await fetch(url, { 
             method: 'PUT', 
             headers: { ...this.headers(), 'Content-Type': 'application/json' }, 
             body: JSON.stringify(body) 
         });
-        
-        if (!res.ok) throw new Error('Falha ao salvar token no GitHub: ' + res.status);
-        console.log('Token salvo no GitHub com sucesso');
+        if (!res.ok) {
+            const errText = await res.text();
+            console.error('Error saving token to GitHub:', res.status, errText);
+            throw new Error('Falha ao salvar token no GitHub: ' + res.status + ' - ' + errText);
+        }
+        const data = await res.json();
+        this.cfg.token = token;
+        this.save();
+        console.log('Token saved successfully');
     },
     
     // Carregar token do GitHub
