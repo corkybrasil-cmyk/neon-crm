@@ -261,6 +261,21 @@ if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', function() {
         // Configurar GitHub Auto-Sync
         GitHubSync.setupAutoSync();
+        // Carregar dados do GitHub ao iniciar, se possível
+        (async () => {
+            try {
+                const { content } = await GitHubSync.fetchFile();
+                if (content) {
+                    Store.data = JSON.parse(content);
+                    console.log('Dados carregados do GitHub');
+                } else {
+                    console.log('Nenhum dado encontrado no GitHub, usando localStorage');
+                }
+            } catch (e) {
+                console.error('Erro ao carregar dados do GitHub:', e);
+                console.log('Continuando com dados locais');
+            }
+        })();
         
         if ($$('#modalClose')) {
             $$('#modalClose').onclick = closeModal;
