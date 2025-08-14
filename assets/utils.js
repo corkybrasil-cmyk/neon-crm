@@ -286,6 +286,12 @@ if (typeof document !== 'undefined') {
                 if (content) {
                     Store.data = JSON.parse(content);
                     console.log('Dados carregados do GitHub');
+                    // If this is the first load after sync, force a reload to ensure all scripts see the data
+                    if (!localStorage.getItem('github-sync-reloaded')) {
+                        localStorage.setItem('github-sync-reloaded', 'true');
+                        console.log('Forçando recarregamento da página para aplicar dados sincronizados');
+                        window.location.reload();
+                    }
                 } else {
                     console.log('Nenhum dado encontrado no GitHub, usando localStorage');
                 }
